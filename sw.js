@@ -2,7 +2,10 @@ const CACHE_NAME = 'najma-struk-v3';
 const ASSETS = [
   './',
   './index.html',
+  './auth.js',
   './manifest.json',
+  './nk.png',
+  
   'https://cdn.tailwindcss.com',
   'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css',
   'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js',
