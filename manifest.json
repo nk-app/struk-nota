@@ -9,7 +9,7 @@
 "theme_color": "#2563eb",
 "icons": [
 {
-"src": "https://lh3.googleusercontent.com/d/1p0pUKgLySjdWaGf41sYeVc1hnz2AMhPI",
+"src": "./icon-nk.png",
 "sizes": "512x512",
 "type": "image/jpeg",
 "purpose": "any maskable"
