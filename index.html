@@ -1,0 +1,1440 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Struk & Nota Pembayaran - Toko Najma Komputer</title>
+
+    <!-- PWA Primary Manifest & Theme Meta -->
+    <meta name="theme-color" content="#2563eb">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="NajmaStruk">
+    
+    <!-- Dynamic Inline PWA Manifest -->
+    <link rel="manifest" href="data:application/manifest+json,%7B%22name%22%3A%22Toko%20Najma%20Komputer%20Struk%22%2C%22short_name%22%3A%22NajmaStruk%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23f8fafc%22%2C%22theme_color%22%3A%22%232563eb%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22https%3A%2F%2Fdrive.google.com%2Fuc%3Fexport%3Dview%26id%3D1p0pUKgLySjdWaGf41sYeVc1hnz2AMhPI%22%2C%22sizes%22%3A%22512x512%22%2C%22type%22%3A%22image%2Fjpeg%22%7D%5D%7D">
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                        }
+                    },
+                    fontFamily: {
+                        receipt: ['Courier New', 'Courier', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- FontAwesome & Libraries CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jsbarcode/3.11.5/JsBarcode.all.min.js"></script>
+
+    <style>
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            #printable-receipt, #printable-receipt * {
+                visibility: visible;
+            }
+            #printable-receipt {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100% !important;
+                margin: 0 !important;
+                padding: 10px !important;
+                box-shadow: none !important;
+                border: none !important;
+                background: white !important;
+            }
+            .no-print {
+                display: none !important;
+            }
+        }
+        
+        .receipt-paper {
+            background-color: #ffffff;
+            box-shadow: 0 4px 15px -1px rgba(0, 0, 0, 0.1), 0 2px 6px -1px rgba(0, 0, 0, 0.06);
+            color: #000000;
+            box-sizing: border-box !important;
+        }
+
+        /* html2canvas strict layout fix */
+        .receipt-shape-badge {
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            line-height: 1.2 !important;
+            vertical-align: middle !important;
+            box-sizing: border-box !important;
+        }
+
+        /* Ensure uniform typography during html2canvas rendering */
+        #printable-receipt * {
+            box-sizing: border-box !important;
+        }
+    </style>
+</head>
+<body class="bg-slate-100 font-sans text-slate-800 min-h-screen flex flex-col">
+
+    <!-- Header / Navbar -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm no-print">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="h-11 w-11 bg-white p-1 rounded-xl shadow-sm border border-slate-200 flex items-center justify-center shrink-0 overflow-hidden">
+                    <img src="https://lh3.googleusercontent.com/d/1p0pUKgLySjdWaGf41sYeVc1hnz2AMhPI" crossorigin="anonymous" alt="Logo Najma Komputer" class="w-full h-full object-contain">
+                </div>
+                <div>
+                    <h1 class="font-bold text-base sm:text-lg text-slate-900 leading-tight">TOKO NAJMA KOMPUTER</h1>
+                    <p class="text-xs text-slate-500">Desa Numana, Kec. Wangi-Wangi Selatan, Kab. Wakatobi</p>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-2">
+                <button onclick="toggleGASModal()" class="px-2.5 py-1.5 text-xs font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors flex items-center gap-1.5">
+                    <i class="fa-solid fa-cloud-arrow-up text-brand-600"></i>
+                    <span class="hidden sm:inline">Backend GAS</span>
+                </button>
+                <button onclick="toggleHistoryModal()" class="px-2.5 py-1.5 text-xs font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors flex items-center gap-1.5">
+                    <i class="fa-solid fa-clock-rotate-left text-slate-500"></i>
+                    <span class="hidden sm:inline">Riwayat</span>
+                </button>
+                <div class="h-5 w-px bg-slate-200 mx-1"></div>
+                <div class="flex items-center gap-2 bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-200">
+                    <i class="fa-solid fa-user-circle text-brand-600 text-sm"></i>
+                    <span id="header-kasir-name" class="text-xs font-bold text-slate-800">admin</span>
+                    <button onclick="logoutKasir()" class="text-xs text-red-500 hover:text-red-700 ml-1" title="Logout Kasir">
+                        <i class="fa-solid fa-right-from-bracket"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- App Main Container -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+
+        <!-- Left Column: Controls & Dynamic Form (7 Cols) -->
+        <div class="lg:col-span-7 space-y-5 no-print">
+            
+            <!-- Category Navigation -->
+            <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+                <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider">Pilih Kategori Transaksi</label>
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2" id="category-buttons">
+                    <!-- Dynamic Buttons Generated by JS -->
+                </div>
+            </div>
+
+            <!-- Main Input Form Card -->
+            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                
+                <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                    <h2 class="font-bold text-slate-800 text-sm flex items-center gap-2" id="form-title">
+                        <i class="fa-solid fa-pen-to-square text-brand-600"></i> Form Pembayaran
+                    </h2>
+                    <span class="text-xs font-medium bg-brand-50 text-brand-600 px-2.5 py-1 rounded-full border border-brand-100" id="current-cat-badge">PDAM</span>
+                </div>
+
+                <!-- Transaction Meta Info -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-slate-50 p-3 rounded-xl border border-slate-100">
+                    <div>
+                        <label class="block text-[11px] font-medium text-slate-500 mb-1">No. Transaksi / Struk</label>
+                        <div class="flex gap-1">
+                            <input type="text" id="input-trxno" oninput="renderReceipt()" class="w-full text-xs font-mono font-bold bg-white border border-slate-200 rounded-lg p-2 focus:border-brand-500 uppercase">
+                            <button onclick="generateTrxNo()" title="Acak Nomor" class="px-2 py-1 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg text-xs">
+                                <i class="fa-solid fa-arrows-rotate"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-medium text-slate-500 mb-1">Tanggal Transaksi</label>
+                        <input type="date" id="input-date" onchange="renderReceipt()" class="w-full text-xs bg-white border border-slate-200 rounded-lg p-2 focus:border-brand-500">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-medium text-slate-500 mb-1">Waktu Transaksi</label>
+                        <input type="time" id="input-time" onchange="renderReceipt()" class="w-full text-xs bg-white border border-slate-200 rounded-lg p-2 focus:border-brand-500">
+                    </div>
+                </div>
+
+                <!-- Dynamic Dynamic Form Fields -->
+                <div id="dynamic-form" class="space-y-3 pt-1">
+                    <!-- Injected per Category -->
+                </div>
+
+                <!-- Financial Global Inputs -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-slate-100">
+                    <div>
+                        <label class="block text-xs font-medium text-slate-700 mb-1">Biaya Admin Store (Rp)</label>
+                        <input type="number" id="input-admin" value="2500" oninput="renderReceipt()" class="w-full text-xs border border-slate-200 rounded-lg p-2 focus:border-brand-500 font-semibold text-slate-700">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-700 mb-1">Status Pembayaran</label>
+                        <select id="input-status" onchange="renderReceipt()" class="w-full text-xs border border-slate-200 rounded-lg p-2 focus:border-brand-500 font-semibold">
+                            <option value="LUNAS">LUNAS</option>
+                            <option value="PENDING">PENDING</option>
+                            <option value="BATAL">BATAL</option>
+                        </select>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Right Column: Live Thermal Receipt Preview (5 Cols) -->
+        <div class="lg:col-span-5 space-y-4">
+            
+            <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm no-print flex items-center justify-between">
+                <span class="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                    <i class="fa-solid fa-receipt text-brand-600"></i> Live Thermal Preview
+                </span>
+                <div class="flex items-center gap-1 bg-slate-100 p-1 rounded-lg">
+                    <button id="paper-58" onclick="setPaperSize('58mm')" class="px-2.5 py-1 text-[11px] font-bold rounded-md transition-all bg-white text-brand-600 shadow-sm">58mm</button>
+                    <button id="paper-80" onclick="setPaperSize('80mm')" class="px-2.5 py-1 text-[11px] font-medium rounded-md transition-all text-slate-600">80mm</button>
+                </div>
+            </div>
+
+            <!-- Receipt Container -->
+            <div class="flex justify-center w-full">
+                <div id="receipt-wrapper" class="w-[340px] transition-all duration-300">
+                    
+                    <!-- Thermal Receipt Paper -->
+                    <div id="printable-receipt" class="receipt-paper p-5 font-receipt text-xs leading-normal border border-slate-200 rounded-t-lg relative">
+                        
+                        <!-- Header Struk -->
+                        <div class="text-center space-y-1 mb-3 pb-3 border-b border-dashed border-slate-400 flex flex-col items-center">
+                            <div class="w-20 h-20 mb-1 flex items-center justify-center overflow-hidden">
+                                <img src="https://lh3.googleusercontent.com/d/1p0pUKgLySjdWaGf41sYeVc1hnz2AMhPI" crossorigin="anonymous" alt="Logo Struk Najma Komputer" class="max-w-full max-h-full object-contain">
+                            </div>
+                            <h2 class="font-bold text-base tracking-wider uppercase" id="rec-store-name">TOKO NAJMA KOMPUTER</h2>
+                            <p class="text-[11px] leading-tight text-slate-700" id="rec-store-addr">Desa Numana, Kec. Wangi-Wangi Selatan<br>Kab. Wakatobi, Sulawesi Tenggara</p>
+                            <p class="text-[11px] text-slate-700">HP/WA: <span id="rec-store-phone">085298875399</span></p>
+                        </div>
+
+                        <!-- Trx Meta Info -->
+                        <div class="space-y-1 text-[11px] mb-3 pb-2 border-b border-dashed border-slate-300">
+                            <div class="flex justify-between">
+                                <span>No. Struk:</span>
+                                <span class="font-bold font-mono" id="rec-trxno">NJM-884910</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Tanggal:</span>
+                                <span id="rec-datetime">04/11/2026 09:30</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Kasir:</span>
+                                <span id="rec-kasir">admin</span>
+                            </div>
+                        </div>
+
+                        <!-- Title Header Category -->
+                        <div class="my-3 text-center">
+                            <h3 id="rec-title" class="font-bold text-xs uppercase tracking-wider border-y border-slate-900 py-1 flex items-center justify-center leading-none">STRUK TAGIHAN AIR PDAM</h3>
+                        </div>
+
+                        <!-- Dynamic Specific Content Details -->
+                        <div id="rec-details" class="space-y-1 text-xs my-3">
+                            <!-- Injected by JS -->
+                        </div>
+
+                        <!-- Financial Line Items & Total -->
+                        <div id="rec-financials" class="space-y-1 border-t border-dashed border-slate-400 pt-2 text-xs">
+                            <!-- Injected by JS -->
+                        </div>
+
+                        <!-- Status Badge -->
+                        <div class="my-4 flex justify-center">
+                            <div id="rec-status-badge" class="receipt-shape-badge min-w-[120px] px-4 py-1.5 rounded text-xs font-bold border border-slate-900 bg-slate-900 text-white text-center uppercase">
+                                LUNAS
+                            </div>
+                        </div>
+
+                        <!-- Footer Struk -->
+                        <div class="text-center space-y-2 pt-3 border-t border-dashed border-slate-400">
+                            <p class="text-[10px] text-slate-600 leading-tight">Terima Kasih atas Kepercayaan Anda.<br>Simpan Struk Ini Sebagai Bukti Pembayaran Sah.</p>
+                            <div class="flex justify-center pt-1">
+                                <svg id="barcode-svg" class="max-h-10"></svg>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- Receipt Actions Button Group -->
+            <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-2.5 no-print">
+                <button onclick="printReceipt()" class="w-full bg-brand-600 hover:bg-brand-700 text-white font-bold py-3 rounded-xl shadow-md transition-all flex items-center justify-center gap-2 text-sm">
+                    <i class="fa-solid fa-print"></i> Cetak Struk (Print)
+                </button>
+                <div class="grid grid-cols-2 gap-2">
+                    <button onclick="downloadAsPNG()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2.5 rounded-xl text-xs transition-colors flex items-center justify-center gap-1.5">
+                        <i class="fa-solid fa-download"></i> Unduh PNG
+                    </button>
+                    <button onclick="copyReceiptText()" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-medium py-2.5 rounded-xl text-xs transition-colors flex items-center justify-center gap-1.5">
+                        <i class="fa-solid fa-copy"></i> Salin Teks
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Modal Login Kasir -->
+    <div id="login-modal" class="fixed inset-0 bg-slate-900/75 backdrop-blur-sm z-50 flex items-center justify-center p-4 no-print">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl space-y-4">
+            <div class="text-center space-y-2 flex flex-col items-center">
+                <div class="w-20 h-20 flex items-center justify-center overflow-hidden">
+                    <img src="https://lh3.googleusercontent.com/d/1p0pUKgLySjdWaGf41sYeVc1hnz2AMhPI" crossorigin="anonymous" alt="Logo Login" class="max-w-full max-h-full object-contain">
+                </div>
+                <h3 class="font-bold text-lg text-slate-900">Login Kasir Store</h3>
+                <p class="text-xs text-slate-500">Masukkan akun kasir untuk mengakses aplikasi</p>
+            </div>
+            <form onsubmit="handleLogin(event)" class="space-y-3">
+                <div>
+                    <label class="block text-xs font-medium text-slate-700 mb-1">Username Kasir</label>
+                    <input type="text" id="login-username" value="admin" required class="w-full text-xs border border-slate-200 rounded-lg p-2.5 focus:border-brand-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-700 mb-1">Password</label>
+                    <input type="password" id="login-password" value="12345" required class="w-full text-xs border border-slate-200 rounded-lg p-2.5 focus:border-brand-500">
+                </div>
+                <button type="submit" class="w-full bg-brand-600 hover:bg-brand-700 text-white font-semibold py-2.5 rounded-xl text-xs transition-colors shadow-sm">
+                    Masuk Aplikasi
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Pengaturan Google Apps Script Backend -->
+    <div id="gas-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 no-print">
+        <div class="bg-white rounded-2xl max-w-md w-full p-5 shadow-2xl space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h3 class="font-bold text-slate-800 flex items-center gap-2">
+                    <i class="fa-solid fa-cloud-arrow-up text-brand-600"></i> Google Apps Script Backend
+                </h3>
+                <button onclick="toggleGASModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <p class="text-xs text-slate-600 leading-relaxed">
+                Masukkan URL Web App dari <b>Code.gs</b> Google Apps Script untuk menyinkronkan setiap transaksi ke Google Sheets secara otomatis.
+            </p>
+            <div>
+                <label class="block text-xs font-medium text-slate-700 mb-1">URL Google Web App (exec)</label>
+                <input type="url" id="gas-url-input" placeholder="https://script.google.com/macros/s/.../exec" class="w-full text-xs border border-slate-200 rounded-lg p-2.5 focus:border-brand-500 font-mono">
+            </div>
+            <div class="flex justify-end gap-2 pt-2 border-t border-slate-100">
+                <button onclick="toggleGASModal()" class="px-3 py-1.5 bg-slate-100 text-slate-700 hover:bg-slate-200 text-xs font-medium rounded-lg">Batal</button>
+                <button onclick="saveGASUrl()" class="px-4 py-1.5 bg-brand-600 hover:bg-brand-700 text-white text-xs font-medium rounded-lg">Simpan URL</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal History / Riwayat -->
+    <div id="history-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 no-print">
+        <div class="bg-white rounded-2xl max-w-2xl w-full p-5 shadow-2xl space-y-4 max-h-[85vh] flex flex-col">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3 shrink-0">
+                <h3 class="font-bold text-slate-800 flex items-center gap-2">
+                    <i class="fa-solid fa-clock-rotate-left text-brand-600"></i> Riwayat Transaksi Tersimpan
+                </h3>
+                <button onclick="toggleHistoryModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="overflow-y-auto flex-1 space-y-2 pr-1" id="history-list">
+                <!-- Injected JS -->
+            </div>
+            <div class="flex justify-between items-center pt-3 border-t border-slate-100 shrink-0">
+                <button onclick="clearAllHistory()" class="text-xs text-red-600 hover:text-red-700 font-medium">Hapus Semua Riwayat</button>
+                <button onclick="toggleHistoryModal()" class="px-4 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium rounded-lg">Tutup</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-5 right-5 bg-slate-900 text-white px-4 py-2.5 rounded-xl shadow-lg text-xs font-medium flex items-center gap-2 translate-y-20 opacity-0 transition-all duration-300 z-50 no-print">
+        <i class="fa-solid fa-circle-check text-emerald-400"></i>
+        <span id="toast-message">Notifikasi</span>
+    </div>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        const categories = [
+            { id: 'pdam', label: 'PDAM', icon: 'fa-droplet', admin: 2500 },
+            { id: 'pln_pasca', label: 'PLN Pasca', icon: 'fa-bolt', admin: 2500 },
+            { id: 'pln_token', label: 'Token PLN', icon: 'fa-key', admin: 2500 },
+            { id: 'pesawat', label: 'Pesawat', icon: 'fa-plane-departure', admin: 5000 },
+            { id: 'pelni', label: 'Kapal Pelni', icon: 'fa-ship', admin: 5000 },
+            { id: 'pulsa', label: 'Pulsa/Data', icon: 'fa-mobile-screen', admin: 2000 },
+            { id: 'indihome', label: 'Indihome', icon: 'fa-wifi', admin: 3000 },
+            { id: 'general', label: 'Nota Toko', icon: 'fa-basket-shopping', admin: 0 }
+        ];
+
+        let currentCategory = 'pdam';
+        let generalItems = [
+            { name: 'Kertas HVS A4 (1 Ream)', qty: 1, price: 55000 },
+            { name: 'Jasa Ketik Struk / Dokumen', qty: 1, price: 10000 }
+        ];
+        let editingHistoryId = null;
+        let activeKasir = 'admin';
+
+        window.addEventListener('DOMContentLoaded', () => {
+            initCategoryButtons();
+            setDefaultDateTime();
+            generateTrxNo();
+            checkAuthSession();
+            registerServiceWorker();
+        });
+
+        // Auth Logic
+        function checkAuthSession() {
+            const savedKasir = localStorage.getItem('najma_active_kasir');
+            if (savedKasir) {
+                activeKasir = savedKasir;
+                document.getElementById('header-kasir-name').innerText = activeKasir;
+                document.getElementById('rec-kasir').innerText = activeKasir;
+                document.getElementById('login-modal').classList.add('hidden');
+            } else {
+                document.getElementById('login-modal').classList.remove('hidden');
+            }
+        }
+
+        function handleLogin(e) {
+            e.preventDefault();
+            const u = document.getElementById('login-username').value.trim();
+            const p = document.getElementById('login-password').value.trim();
+
+            if (u === 'admin' && p === '12345') {
+                activeKasir = u;
+                localStorage.setItem('najma_active_kasir', u);
+                document.getElementById('header-kasir-name').innerText = activeKasir;
+                document.getElementById('rec-kasir').innerText = activeKasir;
+                document.getElementById('login-modal').classList.add('hidden');
+                showToast('Login Kasir Berhasil!');
+            } else {
+                showToast('Username atau password salah!', true);
+            }
+        }
+
+        function logoutKasir() {
+            localStorage.removeItem('najma_active_kasir');
+            document.getElementById('login-modal').classList.remove('hidden');
+            showToast('Anda telah logout');
+        }
+
+        function registerServiceWorker() {
+            if ('serviceWorker' in navigator) {
+                const swCode = `
+                    const CACHE_NAME = 'najma-struk-v1';
+                    self.addEventListener('install', (e) => e.waitUntil(self.skipWaiting()));
+                    self.addEventListener('activate', (e) => e.waitUntil(self.clients.claim()));
+                    self.addEventListener('fetch', (e) => e.respondWith(fetch(e.request).catch(() => caches.match(e.request))));
+                `;
+                const blob = new Blob([swCode], { type: 'application/javascript' });
+                navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(err => console.log('SW Registration bypassed', err));
+            }
+        }
+
+        function initCategoryButtons() {
+            const container = document.getElementById('category-buttons');
+            container.innerHTML = categories.map(cat => `
+                <button type="button" onclick="selectCategory('${cat.id}')" id="cat-btn-${cat.id}" class="cat-btn flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold transition-all">
+                    <i class="fa-solid ${cat.icon} text-slate-500"></i> ${cat.label}
+                </button>
+            `).join('');
+            selectCategory('pdam');
+        }
+
+        function selectCategory(catId) {
+            currentCategory = catId;
+            const catObj = categories.find(c => c.id === catId);
+            
+            document.querySelectorAll('.cat-btn').forEach(btn => {
+                btn.className = 'cat-btn flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold transition-all';
+            });
+            const activeBtn = document.getElementById(`cat-btn-${catId}`);
+            if(activeBtn) {
+                activeBtn.className = 'cat-btn flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-xl border border-brand-600 bg-brand-50 text-brand-700 text-xs font-bold shadow-sm transition-all';
+            }
+
+            document.getElementById('current-cat-badge').innerText = catObj.label;
+            document.getElementById('input-admin').value = catObj.admin;
+
+            loadCategoryForm(catId);
+        }
+
+        function setDefaultDateTime() {
+            const now = new Date();
+            const dateStr = now.toISOString().split('T')[0];
+            const hours = String(now.getHours()).padStart(2, '0');
+            const mins = String(now.getMinutes()).padStart(2, '0');
+            document.getElementById('input-date').value = dateStr;
+            document.getElementById('input-time').value = `${hours}:${mins}`;
+        }
+
+        function generateTrxNo() {
+            const rand = Math.floor(100000 + Math.random() * 900000);
+            const val = `NJM-${rand}`;
+            document.getElementById('input-trxno').value = val;
+            renderReceipt();
+        }
+
+        // Customer Database Handler
+        function getSavedCustomers(category) {
+            const data = localStorage.getItem(`najma_customers_${category}`);
+            return data ? JSON.parse(data) : [];
+        }
+
+        function saveCustomerToDB(category, idVal, nameVal) {
+            if(!idVal || !nameVal) return;
+            let list = getSavedCustomers(category);
+            const exists = list.some(c => c.id === idVal);
+            if(!exists) {
+                list.unshift({ id: idVal, name: nameVal });
+                if(list.length > 20) list.pop();
+                localStorage.setItem(`najma_customers_${category}`, JSON.stringify(list));
+            }
+        }
+
+        function renderCustomerDropdown(category, idInputId, nameInputId) {
+            const list = getSavedCustomers(category);
+            if(list.length === 0) return '';
+
+            const options = list.map(c => `<option value="${c.id}" data-name="${c.name}">${c.id} - ${c.name}</option>`).join('');
+            return `
+                <div class="mb-2 bg-blue-50/60 p-2 rounded-xl border border-blue-100">
+                    <label class="block text-[11px] font-semibold text-brand-700 mb-1">
+                        <i class="fa-solid fa-address-book"></i> Pilih Pelanggan Tersimpan:
+                    </label>
+                    <select onchange="applySavedCustomer(this, '${idInputId}', '${nameInputId}')" class="w-full text-xs border border-brand-200 rounded-lg p-1.5 bg-white">
+                        <option value="">-- Pilih dari riwayat --</option>
+                        ${options}
+                    </select>
+                </div>
+            `;
+        }
+
+        function applySavedCustomer(selectEl, idInputId, nameInputId) {
+            const selectedOpt = selectEl.options[selectEl.selectedIndex];
+            if(!selectedOpt.value) return;
+            
+            const idVal = selectedOpt.value;
+            const nameVal = selectedOpt.getAttribute('data-name');
+
+            if(document.getElementById(idInputId)) document.getElementById(idInputId).value = idVal;
+            if(document.getElementById(nameInputId)) document.getElementById(nameInputId).value = nameVal;
+            renderReceipt();
+        }
+
+        function handleCustomOptionChange(selectId, customContainerId) {
+            const selectEl = document.getElementById(selectId);
+            const containerEl = document.getElementById(customContainerId);
+            if (selectEl && containerEl) {
+                if (selectEl.value === 'LAINNYA') {
+                    containerEl.classList.remove('hidden');
+                } else {
+                    containerEl.classList.add('hidden');
+                }
+            }
+            renderReceipt();
+        }
+
+        function loadCategoryForm(category) {
+            const form = document.getElementById('dynamic-form');
+            const formTitle = document.getElementById('form-title');
+            
+            let html = '';
+
+            if (category === 'pdam') {
+                formTitle.innerHTML = `<i class="fa-solid fa-droplet text-brand-600"></i> Data Tagihan Air PDAM`;
+                const dropdown = renderCustomerDropdown('pdam', 'pdam-id', 'pdam-name');
+                html = `
+                    ${dropdown}
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-medium text-slate-700 mb-1">ID Pelanggan / No. Meter</label>
+                            <input type="text" id="pdam-id" value="5104082910" oninput="renderReceipt()" class="w-full text-xs border border-slate-200 rounded-lg p-2 focus:border-brand-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-700 mb-1">Nama Pelanggan</label>
+                            <input type="text" id="pdam-name" value="LA ODE MUHAMMAD KADIR" oninput="renderReceipt()" class="w-full text-xs border border-slate-200 rounded-lg p-2 focus:border-brand-500">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div>
+                            <label class="block text-xs font-medium text-slate-700 mb-1">Periode Tagihan</label>
+                            <input type="text" id="pdam-period" value="OKTOBER 2026" oninput="renderReceipt()" class="w-full text-xs border border-slate-200 rounded-lg p-2 focus:border-brand-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-700 mb-1">Stand Meter</label>
+                            <input type="text" id="pdam-meter" value="001240 - 001275" oninput="renderReceipt()" class="w-full text-xs border border-slate-200 rounded-lg p-2 focus:border-brand-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-700 mb-1">Pemakaian (m³)</label>
+                            <input type="text" id="pdam-usage" value="35 m³" oninput="renderReceipt()" class="w-full text-xs border border-slate-200 rounded-lg p-2 focus:border-brand-500">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-700 mb-1">Tagihan PDAM (Rp)</label>
+                        <input type="number" id="pdam-amount" value="87500" oninput="updateCalculation()" class="w-full text-xs border border-slate-200 rounded-lg p-2 focus:border-brand-500 font-semibold">
+                    </div>
+                `;
+            } 
+            else if (category === 'pln_pasca') {
+                formTitle.innerHTML = `<i class="fa-solid fa-bolt text-brand-600"></i> Data Listrik PLN Pasca Bayar`;
+                const dropdown = renderCustomerDropdown('pln_pasca', 'pln-id', 'pln-name');
+                html = `
+                    ${dropdown}
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-medium text-slate-700 mb-1">ID Pelanggan PLN</label>
+                            <input type="text" id="pln-id" value="538102938471" oninput="renderReceipt()" class="w-full text-xs border border-slate-200 rounded-lg p-2 focus:border-brand-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-700 mb-1">Nama Pelanggan</label>
+                            <input type="text" id="pln-name" value="WA ODE SITTI RAHMAWATI" oninput="renderReceipt()" class="w-full text-xs border border-slate-200 rounded-lg p-2 focus:border-brand-500">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-medium text-slate-700 mb-1">Tarif / Daya</label>
+                            <input type="text" id="pln-tariff" value="R1M / 900 VA" oninput="renderReceipt()" class="w-full text-xs border border-slate-200 rounded-lg p-2 focus:border-brand-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-700 mb-1">Stand Meter</label>
+                            <input type="text" id="pln-stand" value="045230-045610" oninput="renderReceipt()" class="w-full text-xs border border-slate-200 rounded-lg p-2 focus:border-brand-500">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-700 mb-1">Tagihan PLN (Rp)</label>
+                        <input type="number" id="pln-amount" value="215000" oninput="updateCalculation()" class="w-full text-xs border border-slate-200 rounded-lg p-2 focus:border-brand-500 font-semibold">
+                    </div>
+                `;
+            }
+            else if (category === 'pln_token') {
+                formTitle.innerHTML = `<i class="fa-solid fa-key text-brand-600"></i> Data Pembelian Token Listrik`;
+                const dropdown = renderCustomerDropdown('pln_token', 'token-id', 'token-name');
+                html = `
+                    ${dropdown}
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-medium text-slate-700 mb-1">ID Pelanggan / No Meter</label>
+                            <input type="text" id="token-id" value="32098471920" oninput="renderReceipt()" class="w-full text-xs border border-slate-200 rounded-lg p-2 focus:border-brand-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-700 mb-1">Nama Pelanggan</label>
+                            <input type="text" id="token-name" value="RAHMAT HIDAYATULLAH" oninput="renderReceipt()" class="w-full text-xs border border-slate-200 rounded-lg p-2 focus:border-brand-500">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-medium text-slate-700 mb-1">Tarif / Daya</label>
+                            <input type="text" id="token-tariff" value="R1 / 1300 VA" oninput="renderReceipt()" class="w-full text-xs border border-slate-200 rounded-lg p-2 focus:border-brand-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-700 mb-1">Nominal Token (Rp)</label>
+                            <input type="number" id="token-amount" value="100000" oninput="updateCalculation()" class="w-full text-xs border border-slate-200 rounded-lg p-2 focus:border-brand-500 font-semibold">
+                        </div>
+                    </div>
+                    <div>
+                        <div class="flex items-center justify-between mb-1">
+                            <label class="block text-xs font-medium text-slate-700">Kode Token (20 Digit Strum)</label>
+                            <button type="button" onclick="generateRandomToken()" class="text-[11px] text-brand-600 hover:underline">Acak Kode</button>
+                        </div>
+                        <input type="text" id="token-code" value="4821 9051 2234 8192 0184" oninput="renderReceipt()" class="w-full text-xs font-mono border border-slate-200 rounded-lg p-2 focus:border-brand-500 tracking-wider font-bold text-brand-700 bg-blue-50/50">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-700 mb-1">Jumlah KWh Acquired</label>
+                        <input type="text" id="token-kwh" value="67.2 kWh" oninput="renderReceipt()" class="w-full text-xs border border-slate-200 rounded-lg p-2 focus:border-brand-500">
+                    </div>
+                `;
+            }
+            else if (category === 'pesawat') {
+                formTitle.innerHTML = `<i class="fa-solid fa-plane-departure text-brand-600"></i> Pembelian Tiket Pesawat`;
+                const dropdown = renderCustomerDropdown('pesawat', 'plane-pnr', 'plane-passenger');
+                html = `
+                    ${dropdown}
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-medium text-slate-700 mb-1">Nama Maskapai</label>
+                            <select id="plane-airline" onchange="handleCustomOptionChange('plane-airline', 'plane-custom-container')" class="w-full text-xs border border-slate-200 rounded-lg p-2 focus:border-brand-500 font-semibold">
+                                <option value="LION AIR">LION AIR</option>
+                                <option value="BATIK AIR">BATIK AIR</option>
+                                <option value="WINGS AIR">WINGS AIR</option>
+                                <option value="GARUDA INDONESIA">GARUDA INDONESIA</option>
+                                <option value="CITILINK">CITILINK</option>
+                                <option value="SUPER AIR JET">SUPER AIR JET</option>
+                                <option value="SRIWIJAYA AIR">SRIWIJAYA AIR</option>
+                                <option value="AIRASIA">AIRASIA</option>
+                                <option value="LAINNYA">Lainnya... (Ketik Manual)</option>
+                            </select>
+                            <div id="plane-custom-container" class="mt-2 hidden">
+                                <input type="text" id="plane-airline-custom" placeholder="Ketik nama maskapai..." oninput="renderReceipt()" class="w-full text-xs border border-brand-300 rounded-lg p-2 focus:border-brand-500">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-700 mb-1">Kode Booking / PNR</label>
+                            <input type="text" id="plane-pnr" value="PNR-8829X" oninput="renderReceipt()" class="w-full text-xs uppercase font-mono tracking-wider border border-slate-200 rounded-lg p-2 focus:border-brand-500 font-bold text-slate-800">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-medium text-slate-700 mb-1">Rute / Flight No.</label>
+                            <input type="text" id="plane-route" value="WGG (Wakatobi) - UPGC (Makassar)" oninput="renderReceipt()" class="w-full text-xs border border-slate-200 rounded-lg p-2 focus:border-brand-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-700 mb-1">Tgl & Jam Terbang</label>
+                            <input type="text" id="plane-flightdate" value="12 NOV 2026 - 10:15 WITA" oninput="renderReceipt()" class="w-full text-xs border border-slate-200 rounded-lg p-2 focus:border-brand-500">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-700 mb-1">Nama Penumpang</label>
+                        <input type="text" id="plane-passenger" value="LA ODE MUHAMMAD KADIR" oninput="renderReceipt()" class="w-full text-xs border border-slate-200 rounded-lg p-2 focus:border-brand-500 font-medium">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-700 mb-1">Harga Tiket Pesawat (Rp)</label>
+                        <input type="number" id="plane-amount" value="1450000" oninput="updateCalculation()" class="w-full text-xs border border-slate-200 rounded-lg p-2 focus:border-brand-500 font-semibold">
+                    </div>
+                `;
+            }
+            else if (category === 'pelni') {
+                formTitle.innerHTML = `<i class="fa-solid fa-ship text-brand-600"></i> Pembelian Tiket Pelni / Kapal Laut`;
+                const dropdown = renderCustomerDropdown('pelni', 'pelni-code', 'pelni-passenger');
+                html = `
+                    ${dropdown}
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-medium text-slate-700 mb-1">Nama Kapal</label>
+                            <select id="pelni-ship" onchange="handleCustomOptionChange('pelni-ship', 'pelni-custom-container')" class="w-full text-xs border border-slate-200 rounded-lg p-2 focus:border-brand-500 font-semibold">
+                                <option value="KM. TILONGKABILA">KM. TILONGKABILA</option>
+                                <option value="KM. DOROLONDA">KM. DOROLONDA</option>
+                                <option value="KM. LABOBAR">KM. LABOBAR</option>
+                                <option value="KM. NGGAPULU">KM. NGGAPULU</option>
+                                <option value="KM. CIREMAI">KM. CIREMAI</option>
+                                <option value="KM. DOBONSOLO">KM. DOBONSOLO</option>
+                                <option value="KM. SINABUNG">KM. SINABUNG</option>
+                                <option value="KM. BUKIT SIGUNTANG">KM. BUKIT SIGUNTANG</option>
+                                <option value="KM. LAMBELU">KM. LAMBELU</option>
+                                <option value="KM. JETLINER">KM. JETLINER</option>
+                                <option value="KMS. BAHARI EXPRESS">KMS. BAHARI EXPRESS</option>
+                                <option value="LAINNYA">Lainnya... (Ketik Manual)</option>
+                            </select>
+                            <div id="pelni-custom-container" class="mt-2 hidden">
+                                <input type="text" id="pelni-ship-custom" placeholder="Ketik nama kapal..." oninput="renderReceipt()" class="w-full text-xs border border-brand-300 rounded-lg p-2 focus:border-brand-500">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-700 mb-1">No. Tiket / Kode Booking</label>
+                            <input type="text" id="pelni-code" value="PELNI-994821" oninput="renderReceipt()" class="w-full text-xs uppercase font-mono tracking-wider border border-slate-200 rounded-lg p-2 focus:border-brand-500 font-bold text-slate-800">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-medium text-slate-700 mb-1">Rute (Pelabuhan Asal - Tujuan)</label>
+                            <input type="text" id="pelni-route" value="WANGI-WANGI - BAU-BAU" oninput="renderReceipt()" class="w-full text-xs border border-slate-200 rounded-lg p-2 focus:border-brand-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-700 mb-1">Kelas / Deck</label>
+                            <input type="text" id="pelni-class" value="EKONOMI / DECK 3" oninput="renderReceipt()" class="w-full text-xs border border-slate-200 rounded-lg p-2 focus:border-brand-500">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-medium text-slate-700 mb-1">Tanggal Keberangkatan</label>
+                            <input type="text" id="pelni-departdate" value="15 NOV 2026 - 14:00 WITA" oninput="renderReceipt()" class="w-full text-xs border border-slate-200 rounded-lg p-2 focus:border-brand-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-700 mb-1">Nama Penumpang</label>
+                            <input type="text" id="pelni-passenger" value="WA ODE SITTI RAHMA" oninput="renderReceipt()" class="w-full text-xs border border-slate-200 rounded-lg p-2 focus:border-brand-500 font-medium">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-700 mb-1">Harga Tiket Pelni (Rp)</label>
+                        <input type="number" id="pelni-amount" value="185000" oninput="updateCalculation()" class="w-full text-xs border border-slate-200 rounded-lg p-2 focus:border-brand-500 font-semibold">
+                    </div>
+                `;
+            }
+            else if (category === 'pulsa') {
+                formTitle.innerHTML = `<i class="fa-solid fa-mobile-screen text-brand-600"></i> Pembelian Pulsa / Data`;
+                const dropdown = renderCustomerDropdown('pulsa', 'pulsa-phone', 'pulsa-phone');
+                html = `
+                    ${dropdown}
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-medium text-slate-700 mb-1">Nomor HP Tujuan</label>
+                            <input type="text" id="pulsa-phone" value="085298875399" oninput="renderReceipt()" class="w-full text-xs border border-slate-200 rounded-lg p-2 focus:border-brand-500 font-semibold">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-700 mb-1">Operator / Provider</label>
+                            <select id="pulsa-provider" onchange="renderReceipt()" class="w-full text-xs border border-slate-200 rounded-lg p-2 focus:border-brand-500">
+                                <option value="TELKOMSEL (AS/SIMPATI)">TELKOMSEL</option>
+                                <option value="INDOSAT OOREDOO">INDOSAT</option>
+                                <option value="XL AXIATA">XL AXIATA</option>
+                                <option value="SMARTFREN">SMARTFREN</option>
+                                <option value="TRI (3)">TRI (3)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-700 mb-1">Deskripsi Produk / Paket</label>
+                        <input type="text" id="pulsa-desc" value="Telkomsel Data Internet 10GB 30 Hari" oninput="renderReceipt()" class="w-full text-xs border border-slate-200 rounded-lg p-2 focus:border-brand-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-700 mb-1">Harga Produk (Rp)</label>
+                        <input type="number" id="pulsa-amount" value="55000" oninput="updateCalculation()" class="w-full text-xs border border-slate-200 rounded-lg p-2 focus:border-brand-500 font-semibold">
+                    </div>
+                `;
+            }
+            else if (category === 'indihome') {
+                formTitle.innerHTML = `<i class="fa-solid fa-wifi text-brand-600"></i> Tagihan Indihome / Telkom`;
+                const dropdown = renderCustomerDropdown('indihome', 'indi-id', 'indi-name');
+                html = `
+                    ${dropdown}
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-medium text-slate-700 mb-1">ID Internet / Telepon</label>
+                            <input type="text" id="indi-id" value="122394857102" oninput="renderReceipt()" class="w-full text-xs border border-slate-200 rounded-lg p-2 focus:border-brand-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-700 mb-1">Nama Pelanggan</label>
+                            <input type="text" id="indi-name" value="TOKO NAJMA COMPUTER" oninput="renderReceipt()" class="w-full text-xs border border-slate-200 rounded-lg p-2 focus:border-brand-500">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-700 mb-1">Bulan Tagihan</label>
+                        <input type="text" id="indi-period" value="OKTOBER 2026" oninput="renderReceipt()" class="w-full text-xs border border-slate-200 rounded-lg p-2 focus:border-brand-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-700 mb-1">Tagihan Telkom (Rp)</label>
+                        <input type="number" id="indi-amount" value="345000" oninput="updateCalculation()" class="w-full text-xs border border-slate-200 rounded-lg p-2 focus:border-brand-500 font-semibold">
+                    </div>
+                `;
+            }
+            else if (category === 'general') {
+                formTitle.innerHTML = `<i class="fa-solid fa-basket-shopping text-brand-600"></i> Rincian Barang / Jasa Store`;
+                html = `
+                    <div>
+                        <label class="block text-xs font-medium text-slate-700 mb-1">Nama Pelanggan (Opsional)</label>
+                        <input type="text" id="gen-customer" value="Pelanggan Umum" oninput="renderReceipt()" class="w-full text-xs border border-slate-200 rounded-lg p-2 focus:border-brand-500">
+                    </div>
+                    <div class="space-y-2">
+                        <label class="block text-xs font-medium text-slate-700">Daftar Item / Produk</label>
+                        <div id="general-items-list" class="space-y-2"></div>
+                        <button type="button" onclick="addGeneralItem()" class="w-full py-1.5 border border-dashed border-brand-400 text-brand-600 hover:bg-brand-50 rounded-lg text-xs font-medium transition-colors flex items-center justify-center gap-1">
+                            <i class="fa-solid fa-plus text-xs"></i> Tambah Item Barang
+                        </button>
+                    </div>
+                `;
+            }
+
+            form.innerHTML = html;
+            if (category === 'general') renderGeneralItemsForm();
+            renderReceipt();
+        }
+
+        function renderGeneralItemsForm() {
+            const listEl = document.getElementById('general-items-list');
+            if (!listEl) return;
+            
+            listEl.innerHTML = generalItems.map((item, idx) => `
+                <div class="flex items-center gap-2 bg-slate-50 p-2 rounded-lg border border-slate-200">
+                    <input type="text" value="${item.name}" oninput="updateGeneralItem(${idx}, 'name', this.value)" placeholder="Nama Barang" class="w-full text-xs border border-slate-200 rounded p-1.5 bg-white">
+                    <input type="number" value="${item.qty}" oninput="updateGeneralItem(${idx}, 'qty', this.value)" min="1" placeholder="Qty" class="w-16 text-xs border border-slate-200 rounded p-1.5 bg-white text-center">
+                    <input type="number" value="${item.price}" oninput="updateGeneralItem(${idx}, 'price', this.value)" placeholder="Harga" class="w-24 text-xs border border-slate-200 rounded p-1.5 bg-white text-right">
+                    <button type="button" onclick="removeGeneralItem(${idx})" class="text-slate-400 hover:text-red-500 px-1"><i class="fa-solid fa-trash-can text-xs"></i></button>
+                </div>
+            `).join('');
+        }
+
+        function addGeneralItem() {
+            generalItems.push({ name: 'Item Baru', qty: 1, price: 5000 });
+            renderGeneralItemsForm();
+            renderReceipt();
+        }
+
+        function updateGeneralItem(idx, field, val) {
+            if (field === 'qty' || field === 'price') {
+                generalItems[idx][field] = parseFloat(val) || 0;
+            } else {
+                generalItems[idx][field] = val;
+            }
+            renderReceipt();
+        }
+
+        function removeGeneralItem(idx) {
+            if (generalItems.length > 1) {
+                generalItems.splice(idx, 1);
+                renderGeneralItemsForm();
+                renderReceipt();
+            } else {
+                showToast('Minimal menyisakan 1 item barang', true);
+            }
+        }
+
+        function generateRandomToken() {
+            let res = '';
+            for (let i = 0; i < 4; i++) {
+                res += Math.floor(1000 + Math.random() * 9000) + (i < 3 ? ' ' : '');
+            }
+            const codeInput = document.getElementById('token-code');
+            if (codeInput) {
+                codeInput.value = res;
+                renderReceipt();
+            }
+        }
+
+        function updateCalculation() {
+            renderReceipt();
+        }
+
+        function formatRp(amount) {
+            return 'Rp ' + Number(amount).toLocaleString('id-ID');
+        }
+
+        function renderReceipt() {
+            const trxNo = document.getElementById('input-trxno')?.value || 'NJM-000';
+            const dateVal = document.getElementById('input-date')?.value || '';
+            const timeVal = document.getElementById('input-time')?.value || '';
+            const adminFee = parseFloat(document.getElementById('input-admin')?.value) || 0;
+            const statusVal = document.getElementById('input-status')?.value || 'LUNAS';
+
+            let formattedDateTime = `${dateVal} ${timeVal}`;
+            if (dateVal) {
+                const [y, m, d] = dateVal.split('-');
+                formattedDateTime = `${d}/${m}/${y} ${timeVal}`;
+            }
+
+            document.getElementById('rec-trxno').innerText = trxNo;
+            document.getElementById('rec-datetime').innerText = formattedDateTime;
+            document.getElementById('rec-kasir').innerText = activeKasir;
+
+            const statusBadge = document.getElementById('rec-status-badge');
+            statusBadge.innerText = statusVal;
+
+            if (statusVal === 'LUNAS') {
+                statusBadge.className = 'receipt-shape-badge min-w-[120px] px-4 py-1.5 rounded text-xs font-bold border border-slate-900 bg-slate-900 text-white text-center uppercase';
+            } else if (statusVal === 'PENDING') {
+                statusBadge.className = 'receipt-shape-badge min-w-[120px] px-4 py-1.5 rounded text-xs font-bold border border-amber-600 text-amber-700 bg-amber-50 text-center uppercase';
+            } else {
+                statusBadge.className = 'receipt-shape-badge min-w-[120px] px-4 py-1.5 rounded text-xs font-bold border border-red-600 text-red-700 bg-red-50 text-center uppercase';
+            }
+
+            const titleEl = document.getElementById('rec-title');
+            const detailsEl = document.getElementById('rec-details');
+            const finEl = document.getElementById('rec-financials');
+
+            let mainAmount = 0;
+            let detailsHTML = '';
+
+            if (currentCategory === 'pesawat') {
+                titleEl.innerText = 'STRUK TIKET PESAWAT';
+                let airline = document.getElementById('plane-airline')?.value || '-';
+                if (airline === 'LAINNYA') {
+                    airline = document.getElementById('plane-airline-custom')?.value || 'PESAWAT';
+                }
+                const pnr = document.getElementById('plane-pnr')?.value || '-';
+                const route = document.getElementById('plane-route')?.value || '-';
+                const flightdate = document.getElementById('plane-flightdate')?.value || '-';
+                const passenger = document.getElementById('plane-passenger')?.value || '-';
+                mainAmount = parseFloat(document.getElementById('plane-amount')?.value) || 0;
+
+                detailsHTML = `
+                    <div class="flex justify-between items-start gap-2"><span>Maskapai</span><span class="font-bold text-right">${airline}</span></div>
+                    <div class="flex justify-between items-start gap-2"><span>Kode PNR</span><span class="font-bold text-right font-mono">${pnr}</span></div>
+                    <div class="flex justify-between items-start gap-2"><span>Rute Flight</span><span class="text-right break-words max-w-[170px]">${route}</span></div>
+                    <div class="flex justify-between items-start gap-2"><span>Jadwal Terbang</span><span class="text-right text-[10px]">${flightdate}</span></div>
+                    <div class="flex justify-between items-start gap-2 border-t border-slate-200 pt-1 mt-1"><span>Penumpang</span><span class="font-bold text-right break-words max-w-[170px]">${passenger}</span></div>
+                `;
+            }
+            else if (currentCategory === 'pelni') {
+                titleEl.innerText = 'STRUK TIKET KAPAL PELNI';
+                let ship = document.getElementById('pelni-ship')?.value || '-';
+                if (ship === 'LAINNYA') {
+                    ship = document.getElementById('pelni-ship-custom')?.value || 'KAPAL LAUT';
+                }
+                const code = document.getElementById('pelni-code')?.value || '-';
+                const route = document.getElementById('pelni-route')?.value || '-';
+                const pClass = document.getElementById('pelni-class')?.value || '-';
+                const departdate = document.getElementById('pelni-departdate')?.value || '-';
+                const passenger = document.getElementById('pelni-passenger')?.value || '-';
+                mainAmount = parseFloat(document.getElementById('pelni-amount')?.value) || 0;
+
+                detailsHTML = `
+                    <div class="flex justify-between items-start gap-2"><span>Nama Kapal</span><span class="font-bold text-right">${ship}</span></div>
+                    <div class="flex justify-between items-start gap-2"><span>No Tiket/PNR</span><span class="font-bold text-right font-mono">${code}</span></div>
+                    <div class="flex justify-between items-start gap-2"><span>Rute Pelabuhan</span><span class="text-right break-words max-w-[170px]">${route}</span></div>
+                    <div class="flex justify-between items-start gap-2"><span>Kelas/Deck</span><span class="text-right">${pClass}</span></div>
+                    <div class="flex justify-between items-start gap-2"><span>Keberangkatan</span><span class="text-right text-[10px]">${departdate}</span></div>
+                    <div class="flex justify-between items-start gap-2 border-t border-slate-200 pt-1 mt-1"><span>Penumpang</span><span class="font-bold text-right break-words max-w-[170px]">${passenger}</span></div>
+                `;
+            }
+            else if (currentCategory === 'pdam') {
+                titleEl.innerText = 'STRUK TAGIHAN AIR PDAM';
+                const id = document.getElementById('pdam-id')?.value || '-';
+                const name = document.getElementById('pdam-name')?.value || '-';
+                const period = document.getElementById('pdam-period')?.value || '-';
+                const meter = document.getElementById('pdam-meter')?.value || '-';
+                const usage = document.getElementById('pdam-usage')?.value || '-';
+                mainAmount = parseFloat(document.getElementById('pdam-amount')?.value) || 0;
+
+                detailsHTML = `
+                    <div class="flex justify-between items-start gap-2"><span>ID Pelanggan</span><span class="font-bold text-right">${id}</span></div>
+                    <div class="flex justify-between items-start gap-2"><span>Nama Pel</span><span class="font-bold text-right break-words max-w-[170px]">${name}</span></div>
+                    <div class="flex justify-between items-start gap-2"><span>Periode</span><span class="text-right">${period}</span></div>
+                    <div class="flex justify-between items-start gap-2"><span>Stand Meter</span><span class="text-right">${meter}</span></div>
+                    <div class="flex justify-between items-start gap-2"><span>Pemakaian</span><span class="text-right">${usage}</span></div>
+                `;
+            } 
+            else if (currentCategory === 'pln_pasca') {
+                titleEl.innerText = 'STRUK LISTRIK PASCA BAYAR';
+                const id = document.getElementById('pln-id')?.value || '-';
+                const name = document.getElementById('pln-name')?.value || '-';
+                const tariff = document.getElementById('pln-tariff')?.value || '-';
+                const stand = document.getElementById('pln-stand')?.value || '-';
+                mainAmount = parseFloat(document.getElementById('pln-amount')?.value) || 0;
+
+                detailsHTML = `
+                    <div class="flex justify-between items-start gap-2"><span>ID Pelanggan</span><span class="font-bold text-right">${id}</span></div>
+                    <div class="flex justify-between items-start gap-2"><span>Nama Pel</span><span class="font-bold text-right break-words max-w-[170px]">${name}</span></div>
+                    <div class="flex justify-between items-start gap-2"><span>Tarif/Daya</span><span class="text-right">${tariff}</span></div>
+                    <div class="flex justify-between items-start gap-2"><span>Stand Meter</span><span class="text-right">${stand}</span></div>
+                `;
+            }
+            else if (currentCategory === 'pln_token') {
+                titleEl.innerText = 'STRUK TOKEN LISTRIK PLN';
+                const id = document.getElementById('token-id')?.value || '-';
+                const name = document.getElementById('token-name')?.value || '-';
+                const tariff = document.getElementById('token-tariff')?.value || '-';
+                const code = document.getElementById('token-code')?.value || '-';
+                const kwh = document.getElementById('token-kwh')?.value || '-';
+                mainAmount = parseFloat(document.getElementById('token-amount')?.value) || 0;
+
+                detailsHTML = `
+                    <div class="flex justify-between items-start gap-2"><span>No Meter/ID</span><span class="font-bold text-right">${id}</span></div>
+                    <div class="flex justify-between items-start gap-2"><span>Nama Pel</span><span class="font-bold text-right break-words max-w-[170px]">${name}</span></div>
+                    <div class="flex justify-between items-start gap-2"><span>Tarif/Daya</span><span class="text-right">${tariff}</span></div>
+                    <div class="flex justify-between items-start gap-2"><span>Jml kWh</span><span class="text-right">${kwh}</span></div>
+                    <div class="my-2 p-2 bg-slate-100 rounded text-center border border-dashed border-slate-300">
+                        <span class="block text-[9px] uppercase tracking-wider text-slate-500">Strum / Kode Token</span>
+                        <span class="font-bold text-sm tracking-wider block font-mono my-0.5">${code}</span>
+                    </div>
+                `;
+            }
+            else if (currentCategory === 'pulsa') {
+                titleEl.innerText = 'STRUK PULSA / PAKET DATA';
+                const phone = document.getElementById('pulsa-phone')?.value || '-';
+                const provider = document.getElementById('pulsa-provider')?.value || '-';
+                const desc = document.getElementById('pulsa-desc')?.value || '-';
+                mainAmount = parseFloat(document.getElementById('pulsa-amount')?.value) || 0;
+
+                detailsHTML = `
+                    <div class="flex justify-between items-start gap-2"><span>No. HP Tujuan</span><span class="font-bold text-right">${phone}</span></div>
+                    <div class="flex justify-between items-start gap-2"><span>Operator</span><span class="text-right">${provider}</span></div>
+                    <div class="flex justify-between items-start gap-2"><span>Produk</span><span class="text-right break-words max-w-[170px]">${desc}</span></div>
+                `;
+            }
+            else if (currentCategory === 'indihome') {
+                titleEl.innerText = 'STRUK PEMBAYARAN TELKOM';
+                const id = document.getElementById('indi-id')?.value || '-';
+                const name = document.getElementById('indi-name')?.value || '-';
+                const period = document.getElementById('indi-period')?.value || '-';
+                mainAmount = parseFloat(document.getElementById('indi-amount')?.value) || 0;
+
+                detailsHTML = `
+                    <div class="flex justify-between items-start gap-2"><span>ID Internet</span><span class="font-bold text-right">${id}</span></div>
+                    <div class="flex justify-between items-start gap-2"><span>Nama Pel</span><span class="font-bold text-right break-words max-w-[170px]">${name}</span></div>
+                    <div class="flex justify-between items-start gap-2"><span>Bulan Tagihan</span><span class="text-right">${period}</span></div>
+                `;
+            }
+            else if (currentCategory === 'general') {
+                titleEl.innerText = 'NOTA PENJUALAN TOKO';
+                const cust = document.getElementById('gen-customer')?.value || 'Umum';
+                
+                let itemLines = '';
+                let itemsSubtotal = 0;
+
+                generalItems.forEach(item => {
+                    const lineTotal = item.qty * item.price;
+                    itemsSubtotal += lineTotal;
+                    itemLines += `
+                        <div class="space-y-0.5">
+                            <div class="font-bold">${item.name}</div>
+                            <div class="flex justify-between text-[10px] text-slate-600">
+                                <span>${item.qty} x ${formatRp(item.price)}</span>
+                                <span>${formatRp(lineTotal)}</span>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                mainAmount = itemsSubtotal;
+
+                detailsHTML = `
+                    <div class="flex justify-between items-start gap-2 mb-2 pb-1 border-b border-slate-200">
+                        <span>Pelanggan</span>
+                        <span class="font-bold text-right break-words max-w-[170px]">${cust}</span>
+                    </div>
+                    <div class="space-y-1.5">${itemLines}</div>
+                `;
+            }
+
+            detailsEl.innerHTML = detailsHTML;
+
+            const grandTotal = mainAmount + adminFee;
+
+            finEl.innerHTML = `
+                <div class="flex justify-between">
+                    <span>Harga Tiket / Tagihan</span>
+                    <span class="text-right font-medium">${formatRp(mainAmount)}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span>Biaya Admin</span>
+                    <span class="text-right font-medium">${formatRp(adminFee)}</span>
+                </div>
+                <div class="flex justify-between text-xs font-bold pt-1 border-t border-slate-300">
+                    <span>TOTAL BAYAR</span>
+                    <span class="text-right text-sm">${formatRp(grandTotal)}</span>
+                </div>
+            `;
+
+            try {
+                JsBarcode("#barcode-svg", trxNo, { format: "CODE128", width: 1.5, height: 35, displayValue: false, margin: 0 });
+            } catch (e) {}
+        }
+
+        function setPaperSize(size) {
+            const wrapper = document.getElementById('receipt-wrapper');
+            const btn58 = document.getElementById('paper-58');
+            const btn80 = document.getElementById('paper-80');
+
+            if (size === '58mm') {
+                wrapper.className = 'w-[340px] transition-all duration-300';
+                btn58.className = 'px-2.5 py-1 text-[11px] font-bold rounded-md transition-all bg-white text-brand-600 shadow-sm';
+                btn80.className = 'px-2.5 py-1 text-[11px] font-medium rounded-md transition-all text-slate-600';
+            } else {
+                wrapper.className = 'w-[440px] transition-all duration-300';
+                btn80.className = 'px-2.5 py-1 text-[11px] font-bold rounded-md transition-all bg-white text-brand-600 shadow-sm';
+                btn58.className = 'px-2.5 py-1 text-[11px] font-medium rounded-md transition-all text-slate-600';
+            }
+        }
+
+        function printReceipt() {
+            saveTransactionToHistory();
+            window.print();
+        }
+
+        function downloadAsPNG() {
+            saveTransactionToHistory();
+            const target = document.getElementById('printable-receipt');
+            
+            showToast('Menyiapkan gambar struk...');
+            
+            // Temporary layout stabilization to guarantee visual consistency during capture
+            const originalWidth = target.style.width;
+            
+            html2canvas(target, {
+                scale: 3,
+                useCORS: true,
+                allowTaint: true,
+                backgroundColor: '#ffffff',
+                logging: false,
+                onclone: (clonedDoc) => {
+                    const clonedReceipt = clonedDoc.getElementById('printable-receipt');
+                    if (clonedReceipt) {
+                        clonedReceipt.style.boxShadow = 'none';
+                        clonedReceipt.style.border = 'none';
+                        clonedReceipt.style.borderRadius = '0';
+                    }
+                }
+            }).then(canvas => {
+                const link = document.createElement('a');
+                const trxNo = document.getElementById('input-trxno')?.value || 'Struk';
+                link.download = `Struk_NajmaKomputer_${trxNo}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+                showToast('Gambar berhasil diunduh!');
+            }).catch(err => {
+                console.error(err);
+                showToast('Gagal mengunduh gambar', true);
+            });
+        }
+
+        function copyReceiptText() {
+            const trxNo = document.getElementById('rec-trxno').innerText;
+            const datetime = document.getElementById('rec-datetime').innerText;
+            const title = document.getElementById('rec-title').innerText;
+            
+            let text = `==============================\n`;
+            text += `     TOKO NAJMA KOMPUTER\n`;
+            text += `Desa Numana, Wangi-Wangi Selatan\n`;
+            text += `        Kab. Wakatobi\n`;
+            text += `     HP/WA: 085298875399\n`;
+            text += `==============================\n`;
+            text += `No. Struk : ${trxNo}\n`;
+            text += `Tanggal   : ${datetime}\n`;
+            text += `Kasir     : ${activeKasir}\n`;
+            text += `------------------------------\n`;
+            text += `     ${title}\n`;
+            text += `------------------------------\n`;
+
+            const detailRows = document.querySelectorAll('#rec-details > div');
+            detailRows.forEach(row => {
+                const spans = row.querySelectorAll('span');
+                if (spans.length >= 2) {
+                    text += `${spans[0].innerText.padEnd(12)} : ${spans[1].innerText}\n`;
+                }
+            });
+
+            text += `------------------------------\n`;
+            const finRows = document.querySelectorAll('#rec-financials > div');
+            finRows.forEach(row => {
+                const spans = row.querySelectorAll('span');
+                if (spans.length >= 2) {
+                    text += `${spans[0].innerText.padEnd(14)} : ${spans[1].innerText}\n`;
+                }
+            });
+            text += `==============================\n`;
+            text += `Status : ${document.getElementById('rec-status-badge').innerText}\n`;
+            text += `Terima kasih atas kunjungan Anda!\n`;
+
+            navigator.clipboard.writeText(text).then(() => {
+                showToast('Teks Struk Disalin ke Clipboard!');
+            });
+        }
+
+        function saveTransactionToHistory() {
+            const trxNo = document.getElementById('rec-trxno')?.innerText || '';
+            const title = document.getElementById('rec-title')?.innerText || '';
+            const date = document.getElementById('rec-datetime')?.innerText || '';
+            const status = document.getElementById('input-status')?.value || 'LUNAS';
+            const adminFee = document.getElementById('input-admin')?.value || '2500';
+            const rawDate = document.getElementById('input-date')?.value || '';
+            const rawTime = document.getElementById('input-time')?.value || '';
+            const grandTotalStr = document.querySelector('#rec-financials div:last-child span:last-child')?.innerText || '0';
+
+            let payload = {};
+            let custId = '', custName = '';
+
+            if (currentCategory === 'pdam') {
+                custId = document.getElementById('pdam-id')?.value || '';
+                custName = document.getElementById('pdam-name')?.value || '';
+                payload = { id: custId, name: custName, period: document.getElementById('pdam-period')?.value || '', amount: document.getElementById('pdam-amount')?.value || 0 };
+            } else if (currentCategory === 'pesawat') {
+                let airline = document.getElementById('plane-airline')?.value || '';
+                if (airline === 'LAINNYA') airline = document.getElementById('plane-airline-custom')?.value || '';
+                custId = document.getElementById('plane-pnr')?.value || '';
+                custName = document.getElementById('plane-passenger')?.value || '';
+                payload = { airline, pnr: custId, route: document.getElementById('plane-route')?.value || '', passenger: custName, amount: document.getElementById('plane-amount')?.value || 0 };
+            } else if (currentCategory === 'pelni') {
+                let ship = document.getElementById('pelni-ship')?.value || '';
+                if (ship === 'LAINNYA') ship = document.getElementById('pelni-ship-custom')?.value || '';
+                custId = document.getElementById('pelni-code')?.value || '';
+                custName = document.getElementById('pelni-passenger')?.value || '';
+                payload = { ship, code: custId, route: document.getElementById('pelni-route')?.value || '', passenger: custName, amount: document.getElementById('pelni-amount')?.value || 0 };
+            } else if (currentCategory === 'pln_pasca') {
+                custId = document.getElementById('pln-id')?.value || '';
+                custName = document.getElementById('pln-name')?.value || '';
+                payload = { id: custId, name: custName, amount: document.getElementById('pln-amount')?.value || 0 };
+            } else if (currentCategory === 'pln_token') {
+                custId = document.getElementById('token-id')?.value || '';
+                custName = document.getElementById('token-name')?.value || '';
+                payload = { id: custId, name: custName, amount: document.getElementById('token-amount')?.value || 0, code: document.getElementById('token-code')?.value || '' };
+            } else if (currentCategory === 'pulsa') {
+                custId = document.getElementById('pulsa-phone')?.value || '';
+                custName = custId;
+                payload = { phone: custId, provider: document.getElementById('pulsa-provider')?.value || '', amount: document.getElementById('pulsa-amount')?.value || 0 };
+            } else if (currentCategory === 'indihome') {
+                custId = document.getElementById('indi-id')?.value || '';
+                custName = document.getElementById('indi-name')?.value || '';
+                payload = { id: custId, name: custName, amount: document.getElementById('indi-amount')?.value || 0 };
+            } else if (currentCategory === 'general') {
+                custName = document.getElementById('gen-customer')?.value || 'Umum';
+                payload = { items: [...generalItems] };
+            }
+
+            saveCustomerToDB(currentCategory, custId, custName);
+
+            const record = {
+                id: editingHistoryId ? editingHistoryId : Date.now(),
+                trxNo, title, date, rawDate, rawTime,
+                category: currentCategory, status, adminFee,
+                total: grandTotalStr, kasir: activeKasir,
+                payload
+            };
+
+            let history = JSON.parse(localStorage.getItem('najma_trx_history') || '[]');
+            if (editingHistoryId) {
+                const idx = history.findIndex(h => h.id === editingHistoryId);
+                if (idx !== -1) history[idx] = record;
+                showToast('Transaksi diperbarui!');
+                editingHistoryId = null;
+            } else {
+                history.unshift(record);
+                showToast('Transaksi disimpan!');
+            }
+
+            localStorage.setItem('najma_trx_history', JSON.stringify(history));
+            syncTransactionToGAS(record);
+        }
+
+        function toggleHistoryModal() {
+            const modal = document.getElementById('history-modal');
+            if (modal.classList.contains('hidden')) {
+                renderHistoryList();
+                modal.classList.remove('hidden');
+            } else {
+                modal.classList.add('hidden');
+            }
+        }
+
+        function renderHistoryList() {
+            const history = JSON.parse(localStorage.getItem('najma_trx_history') || '[]');
+            const listEl = document.getElementById('history-list');
+
+            if (history.length === 0) {
+                listEl.innerHTML = `<div class="text-center py-8 text-slate-400 text-xs">Belum ada riwayat transaksi tersimpan.</div>`;
+                return;
+            }
+
+            listEl.innerHTML = history.map(item => `
+                <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 flex items-center justify-between gap-3 text-xs">
+                    <div class="space-y-0.5">
+                        <div class="flex items-center gap-2">
+                            <span class="font-bold font-mono text-slate-900">${item.trxNo}</span>
+                            <span class="px-2 py-0.5 rounded text-[10px] font-bold ${item.status === 'LUNAS' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">${item.status}</span>
+                        </div>
+                        <div class="text-slate-600 font-medium">${item.title}</div>
+                        <div class="text-[10px] text-slate-400">${item.date} | Kasir: ${item.kasir || 'admin'}</div>
+                    </div>
+                    <div class="text-right space-y-1">
+                        <div class="font-bold text-slate-900 text-sm">${item.total}</div>
+                        <div class="flex gap-1 justify-end">
+                            <button onclick="loadHistoryToForm(${item.id})" class="px-2 py-1 bg-brand-50 text-brand-600 hover:bg-brand-100 rounded text-[11px] font-semibold flex items-center gap-1">
+                                <i class="fa-solid fa-pen"></i> Edit
+                            </button>
+                            <button onclick="deleteHistoryItem(${item.id})" class="px-2 py-1 bg-red-50 text-red-600 hover:bg-red-100 rounded text-[11px] font-semibold">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function loadHistoryToForm(id) {
+            const history = JSON.parse(localStorage.getItem('najma_trx_history') || '[]');
+            const item = history.find(h => h.id === id);
+            if (!item) return;
+
+            editingHistoryId = item.id;
+            selectCategory(item.category);
+
+            document.getElementById('input-trxno').value = item.trxNo;
+            if (item.rawDate) document.getElementById('input-date').value = item.rawDate;
+            if (item.rawTime) document.getElementById('input-time').value = item.rawTime;
+            document.getElementById('input-admin').value = item.adminFee || 2500;
+            document.getElementById('input-status').value = item.status || 'LUNAS';
+
+            const p = item.payload || {};
+            if (item.category === 'pdam') {
+                if(p.id) document.getElementById('pdam-id').value = p.id;
+                if(p.name) document.getElementById('pdam-name').value = p.name;
+                if(p.period) document.getElementById('pdam-period').value = p.period;
+                if(p.amount) document.getElementById('pdam-amount').value = p.amount;
+            } else if (item.category === 'pesawat') {
+                if(p.pnr) document.getElementById('plane-pnr').value = p.pnr;
+                if(p.passenger) document.getElementById('plane-passenger').value = p.passenger;
+                if(p.route) document.getElementById('plane-route').value = p.route;
+                if(p.amount) document.getElementById('plane-amount').value = p.amount;
+            } else if (item.category === 'pelni') {
+                if(p.code) document.getElementById('pelni-code').value = p.code;
+                if(p.passenger) document.getElementById('pelni-passenger').value = p.passenger;
+                if(p.route) document.getElementById('pelni-route').value = p.route;
+                if(p.amount) document.getElementById('pelni-amount').value = p.amount;
+            } else if (item.category === 'general' && p.items) {
+                generalItems = [...p.items];
+                renderGeneralItemsForm();
+            }
+
+            renderReceipt();
+            toggleHistoryModal();
+            showToast('Data riwayat dimuat ke form');
+        }
+
+        function deleteHistoryItem(id) {
+            let history = JSON.parse(localStorage.getItem('najma_trx_history') || '[]');
+            history = history.filter(h => h.id !== id);
+            localStorage.setItem('najma_trx_history', JSON.stringify(history));
+            renderHistoryList();
+            showToast('Item riwayat dihapus');
+        }
+
+        function clearAllHistory() {
+            if (confirm('Yakin ingin menghapus seluruh riwayat transaksi?')) {
+                localStorage.removeItem('najma_trx_history');
+                renderHistoryList();
+                showToast('Seluruh riwayat dihapus');
+            }
+        }
+
+        function toggleGASModal() {
+            const m = document.getElementById('gas-modal');
+            const input = document.getElementById('gas-url-input');
+            if (m.classList.contains('hidden')) {
+                input.value = localStorage.getItem('najma_gas_url') || '';
+                m.classList.remove('hidden');
+            } else {
+                m.classList.add('hidden');
+            }
+        }
+
+        function saveGASUrl() {
+            const url = document.getElementById('gas-url-input').value.trim();
+            localStorage.setItem('najma_gas_url', url);
+            toggleGASModal();
+            showToast('URL Google Apps Script disimpan!');
+        }
+
+        function syncTransactionToGAS(record) {
+            const gasUrl = localStorage.getItem('najma_gas_url');
+            if (!gasUrl) return;
+
+            fetch(gasUrl, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(record)
+            }).then(() => {
+                showToast('Tersinkron ke Google Sheets!');
+            }).catch(err => {
+                console.log('GAS Sync offline / error', err);
+            });
+        }
+
+        function showToast(msg, isError = false) {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toast-message');
+            
+            toastMsg.innerText = msg;
+            if (isError) {
+                toast.className = 'fixed bottom-5 right-5 bg-red-900 text-white px-4 py-2.5 rounded-xl shadow-lg text-xs font-medium flex items-center gap-2 translate-y-0 opacity-100 transition-all duration-300 z-50 no-print';
+            } else {
+                toast.className = 'fixed bottom-5 right-5 bg-slate-900 text-white px-4 py-2.5 rounded-xl shadow-lg text-xs font-medium flex items-center gap-2 translate-y-0 opacity-100 transition-all duration-300 z-50 no-print';
+            }
+
+            setTimeout(() => {
+                toast.className = 'fixed bottom-5 right-5 bg-slate-900 text-white px-4 py-2.5 rounded-xl shadow-lg text-xs font-medium flex items-center gap-2 translate-y-20 opacity-0 transition-all duration-300 z-50 no-print';
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
