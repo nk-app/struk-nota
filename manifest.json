@@ -1,18 +1,18 @@
 {
-"name": "Toko Najma Komputer Struk",
-"short_name": "NajmaStruk",
-"description": "Aplikasi Generator Struk & Nota Pembayaran Toko Najma Komputer Wakatobi",
-"start_url": "./index.html",
-"display": "standalone",
-"orientation": "portrait-primary",
-"background_color": "#f8fafc",
-"theme_color": "#2563eb",
-"icons": [
-{
-"src": "./nk.png",
-"sizes": "512x512",
-"type": "image/png",
-"purpose": "any maskable"
-}
-]
+  "name": "Toko Najma Komputer Struk",
+  "short_name": "NajmaStruk",
+  "description": "Aplikasi Generator Struk & Nota Pembayaran Toko Najma Komputer Wakatobi",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#f8fafc",
+  "theme_color": "#2563eb",
+  "icons": [
+    {
+      "src": "./nk.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
 }
