@@ -220,7 +220,7 @@
                         <div class="space-y-1 text-[11px] mb-3 pb-2 border-b border-dashed border-slate-300">
                             <div class="flex justify-between">
                                 <span>No. Struk:</span>
-                                <span class="font-bold font-mono" id="rec-trxno">NJM-884910</span>
+                                <span class="font-bold font-mono" id="rec-trxno">NK-884910</span>
                             </div>
                             <div class="flex justify-between">
                                 <span>Tanggal:</span>
@@ -475,7 +475,7 @@
 
         function generateTrxNo() {
             const rand = Math.floor(100000 + Math.random() * 900000);
-            const val = `NJM-${rand}`;
+            const val = `NK-${rand}`;
             document.getElementById('input-trxno').value = val;
             renderReceipt();
         }
@@ -893,7 +893,7 @@
         }
 
         function renderReceipt() {
-            const trxNo = document.getElementById('input-trxno')?.value || 'NJM-000';
+            const trxNo = document.getElementById('input-trxno')?.value || 'NK-000';
             const dateVal = document.getElementById('input-date')?.value || '';
             const timeVal = document.getElementById('input-time')?.value || '';
             const adminFee = parseFloat(document.getElementById('input-admin')?.value) || 0;
