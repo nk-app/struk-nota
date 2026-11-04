@@ -1,16 +1,14 @@
-const CACHE_NAME = 'najma-struk-v3';
+const CACHE_NAME = 'najma-struk-v4';
 const ASSETS = [
   './',
   './index.html',
   './auth.js',
   './manifest.json',
   './nk.png',
-  
   'https://cdn.tailwindcss.com',
   'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css',
   'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js',
-  'https://cdnjs.cloudflare.com/ajax/libs/jsbarcode/3.11.5/JsBarcode.all.min.js',
-  'https://drive.google.com/uc?export=view&id=1p0pUKgLySjdWaGf41sYeVc1hnz2AMhPI'
+  'https://cdnjs.cloudflare.com/ajax/libs/jsbarcode/3.11.5/JsBarcode.all.min.js'
 ];
 
 self.addEventListener('install', (e) => {
