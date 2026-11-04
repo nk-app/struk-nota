@@ -12,7 +12,7 @@
     <meta name="apple-mobile-web-app-title" content="NajmaStruk">
     
     <!-- Dynamic Inline PWA Manifest -->
-    <link rel="manifest" href="data:application/manifest+json,%7B%22name%22%3A%22Toko%20Najma%20Komputer%20Struk%22%2C%22short_name%22%3A%22NajmaStruk%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23f8fafc%22%2C%22theme_color%22%3A%22%232563eb%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22https%3A%2F%2Fdrive.google.com%2Fuc%3Fexport%3Dview%26id%3D1p0pUKgLySjdWaGf41sYeVc1hnz2AMhPI%22%2C%22sizes%22%3A%22512x512%22%2C%22type%22%3A%22image%2Fjpeg%22%7D%5D%7D">
+    <link rel="manifest" href="manifest.json">
 
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -41,6 +41,9 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jsbarcode/3.11.5/JsBarcode.all.min.js"></script>
+    
+    <!-- External Auth Script -->
+    <script src="./auth.js"></script>
 
     <style>
         @media print {
@@ -387,52 +390,10 @@
             registerServiceWorker();
         });
 
-        // Auth Logic
-        function checkAuthSession() {
-            const savedKasir = localStorage.getItem('najma_active_kasir');
-            if (savedKasir) {
-                activeKasir = savedKasir;
-                document.getElementById('header-kasir-name').innerText = activeKasir;
-                document.getElementById('rec-kasir').innerText = activeKasir;
-                document.getElementById('login-modal').classList.add('hidden');
-            } else {
-                document.getElementById('login-modal').classList.remove('hidden');
-            }
-        }
-
-        function handleLogin(e) {
-            e.preventDefault();
-            const u = document.getElementById('login-username').value.trim();
-            const p = document.getElementById('login-password').value.trim();
-
-            if (u === 'admin' && p === '12345') {
-                activeKasir = u;
-                localStorage.setItem('najma_active_kasir', u);
-                document.getElementById('header-kasir-name').innerText = activeKasir;
-                document.getElementById('rec-kasir').innerText = activeKasir;
-                document.getElementById('login-modal').classList.add('hidden');
-                showToast('Login Kasir Berhasil!');
-            } else {
-                showToast('Username atau password salah!', true);
-            }
-        }
-
-        function logoutKasir() {
-            localStorage.removeItem('najma_active_kasir');
-            document.getElementById('login-modal').classList.remove('hidden');
-            showToast('Anda telah logout');
-        }
-
         function registerServiceWorker() {
             if ('serviceWorker' in navigator) {
-                const swCode = `
-                    const CACHE_NAME = 'najma-struk-v1';
-                    self.addEventListener('install', (e) => e.waitUntil(self.skipWaiting()));
-                    self.addEventListener('activate', (e) => e.waitUntil(self.clients.claim()));
-                    self.addEventListener('fetch', (e) => e.respondWith(fetch(e.request).catch(() => caches.match(e.request))));
-                `;
-                const blob = new Blob([swCode], { type: 'application/javascript' });
-                navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(err => console.log('SW Registration bypassed', err));
+                navigator.serviceWorker.register('./sw.js')
+                    .catch(err => console.log('SW Registration error:', err));
             }
         }
 
@@ -1130,9 +1091,6 @@
             
             showToast('Menyiapkan gambar struk...');
             
-            // Temporary layout stabilization to guarantee visual consistency during capture
-            const originalWidth = target.style.width;
-            
             html2canvas(target, {
                 scale: 3,
                 useCORS: true,
@@ -1208,7 +1166,7 @@
             const title = document.getElementById('rec-title')?.innerText || '';
             const date = document.getElementById('rec-datetime')?.innerText || '';
             const status = document.getElementById('input-status')?.value || 'LUNAS';
-            const adminFee = document.getElementById('input-admin')?.value || '2500';
+            const adminFee = document.getElementById('input-admin')?.value || '5000';
             const rawDate = document.getElementById('input-date')?.value || '';
             const rawTime = document.getElementById('input-time')?.value || '';
             const grandTotalStr = document.querySelector('#rec-financials div:last-child span:last-child')?.innerText || '0';
@@ -1333,7 +1291,7 @@
             document.getElementById('input-trxno').value = item.trxNo;
             if (item.rawDate) document.getElementById('input-date').value = item.rawDate;
             if (item.rawTime) document.getElementById('input-time').value = item.rawTime;
-            document.getElementById('input-admin').value = item.adminFee || 2500;
+            document.getElementById('input-admin').value = item.adminFee || 5000;
             document.getElementById('input-status').value = item.status || 'LUNAS';
 
             const p = item.payload || {};
