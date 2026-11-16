@@ -79,27 +79,29 @@
             text-rendering: optimizeLegibility;
         }
 
-        /* Perbaikan Presisi Judul Struk di Antara Garis Atas & Bawah */
+        /* Perbaikan Presisi Judul Struk agar Benar-Benar di Tengah Garis Atas & Bawah */
         .receipt-title-box {
             border-top: 1px solid #000000 !important;
             border-bottom: 1px solid #000000 !important;
-            padding: 6px 0 !important;
+            padding: 8px 0 6px 0 !important; /* Padding atas sedikit ditambah agar visual turun pas di tengah */
             text-align: center !important;
             font-weight: bold !important;
-            line-height: 1.3 !important;
+            line-height: normal !important;
             box-sizing: border-box !important;
+            display: block !important;
         }
 
         /* Perbaikan Presisi Vertikal Status Badge agar tidak rapat ke bawah saat Unduh PNG */
         .receipt-shape-badge {
-            display: inline-block !important;
-            height: 32px !important;
-            line-height: 32px !important;
-            text-align: center !important;
-            vertical-align: middle !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            height: 38px !important; /* Diberikan tinggi tetap */
+            padding: 0 20px !important;
             box-sizing: border-box !important;
-            padding: 0 16px !important;
             font-weight: bold !important;
+            vertical-align: middle !important;
+            line-height: 1 !important;
         }
 
         /* Ensure uniform typography during html2canvas rendering */
