@@ -92,47 +92,6 @@
             color: #000000 !important;
             box-sizing: border-box !important;
         }
-
-        /* Perbaikan presisi tengah untuk Judul Jenis Struk (tanpa flex agar tidak turun di html2canvas) */
-        .receipt-title-box {
-            display: block !important;
-            width: 100% !important;
-            text-align: center !important;
-            border-top: 1.5px solid #000000 !important;
-            border-bottom: 1.5px solid #000000 !important;
-            padding: 7px 4px !important;
-            line-height: 1.1 !important;
-            font-weight: 700 !important;
-        }
-
-        /* Perbaikan presisi tengah untuk Badge Status (tanpa inline-flex agar tidak merapat ke bawah) */
-        .receipt-shape-badge {
-            display: inline-block !important;
-            min-width: 130px !important;
-            padding: 7px 18px !important;
-            line-height: 1.1 !important;
-            text-align: center !important;
-            vertical-align: middle !important;
-            box-sizing: border-box !important;
-            font-weight: 700 !important;
-        }
-
-        /* Warna khusus teks badge LUNAS tetap putih di atas hitam pekat */
-        #printable-receipt .badge-lunas {
-            background-color: #000000 !important;
-            color: #ffffff !important;
-            border: 1.5px solid #000000 !important;
-        }
-        #printable-receipt .badge-pending {
-            background-color: #fef3c7 !important;
-            color: #000000 !important;
-            border: 1.5px solid #000000 !important;
-        }
-        #printable-receipt .badge-batal {
-            background-color: #fee2e2 !important;
-            color: #000000 !important;
-            border: 1.5px solid #000000 !important;
-        }
     </style>
 </head>
 <body class="bg-slate-100 font-sans text-slate-800 min-h-screen flex flex-col">
@@ -278,9 +237,13 @@
                             </div>
                         </div>
 
-                        <!-- Title Header Category -->
-                        <div class="my-3 text-center">
-                            <h3 id="rec-title" class="receipt-title-box text-xs uppercase tracking-wider">STRUK TAGIHAN AIR PDAM</h3>
+                        <!-- Title Header Category (SVG Presisi 100% Rata Tengah di Antara Garis Atas & Bawah) -->
+                        <div class="my-3 w-full">
+                            <svg width="100%" height="30" viewBox="0 0 300 30" preserveAspectRatio="none" class="block w-full h-[30px]">
+                                <line x1="0" y1="1.5" x2="300" y2="1.5" stroke="#000000" stroke-width="1.5" />
+                                <line x1="0" y1="28.5" x2="300" y2="28.5" stroke="#000000" stroke-width="1.5" />
+                                <text id="rec-title" x="150" y="15.5" fill="#000000" font-family="'Courier New', Courier, monospace" font-size="12.5" font-weight="700" text-anchor="middle" dominant-baseline="central" letter-spacing="0.8">STRUK TAGIHAN AIR PDAM</text>
+                            </svg>
                         </div>
 
                         <!-- Dynamic Specific Content Details -->
@@ -293,11 +256,12 @@
                             <!-- Injected by JS -->
                         </div>
 
-                        <!-- Status Badge -->
-                        <div class="my-4 text-center">
-                            <span id="rec-status-badge" class="receipt-shape-badge badge-lunas rounded text-xs uppercase">
-                                LUNAS
-                            </span>
+                        <!-- Status Badge (SVG Presisi 100% Rata Tengah di Dalam Bingkai) -->
+                        <div class="my-4 flex justify-center">
+                            <svg width="144" height="34" viewBox="0 0 144 34" class="block">
+                                <rect id="rec-status-rect" x="1.5" y="1.5" width="141" height="31" rx="5" fill="#000000" stroke="#000000" stroke-width="1.5" />
+                                <text id="rec-status-badge" x="72" y="17.5" fill="#ffffff" font-family="'Courier New', Courier, monospace" font-size="13.5" font-weight="700" text-anchor="middle" dominant-baseline="central" letter-spacing="1.5">LUNAS</text>
+                            </svg>
                         </div>
 
                         <!-- Footer Struk -->
@@ -913,15 +877,25 @@
             document.getElementById('rec-datetime').innerText = formattedDateTime;
             document.getElementById('rec-kasir').innerText = activeKasir;
 
+            // Update SVG Status Badge
             const statusBadge = document.getElementById('rec-status-badge');
-            statusBadge.innerText = statusVal;
+            const statusRect = document.getElementById('rec-status-rect');
+            if (statusBadge) statusBadge.textContent = statusVal;
 
-            if (statusVal === 'LUNAS') {
-                statusBadge.className = 'receipt-shape-badge badge-lunas rounded text-xs uppercase';
-            } else if (statusVal === 'PENDING') {
-                statusBadge.className = 'receipt-shape-badge badge-pending rounded text-xs uppercase';
-            } else {
-                statusBadge.className = 'receipt-shape-badge badge-batal rounded text-xs uppercase';
+            if (statusRect && statusBadge) {
+                if (statusVal === 'LUNAS') {
+                    statusRect.setAttribute('fill', '#000000');
+                    statusRect.setAttribute('stroke', '#000000');
+                    statusBadge.setAttribute('fill', '#ffffff');
+                } else if (statusVal === 'PENDING') {
+                    statusRect.setAttribute('fill', '#fef3c7');
+                    statusRect.setAttribute('stroke', '#000000');
+                    statusBadge.setAttribute('fill', '#000000');
+                } else {
+                    statusRect.setAttribute('fill', '#fee2e2');
+                    statusRect.setAttribute('stroke', '#000000');
+                    statusBadge.setAttribute('fill', '#000000');
+                }
             }
 
             const titleEl = document.getElementById('rec-title');
@@ -932,7 +906,7 @@
             let detailsHTML = '';
 
             if (currentCategory === 'pesawat') {
-                titleEl.innerText = 'STRUK TIKET PESAWAT';
+                titleEl.textContent = 'STRUK TIKET PESAWAT';
                 let airline = document.getElementById('plane-airline')?.value || '-';
                 if (airline === 'LAINNYA') {
                     airline = document.getElementById('plane-airline-custom')?.value || 'PESAWAT';
@@ -952,7 +926,7 @@
                 `;
             }
             else if (currentCategory === 'pelni') {
-                titleEl.innerText = 'STRUK TIKET KAPAL PELNI';
+                titleEl.textContent = 'STRUK TIKET KAPAL PELNI';
                 let ship = document.getElementById('pelni-ship')?.value || '-';
                 if (ship === 'LAINNYA') {
                     ship = document.getElementById('pelni-ship-custom')?.value || 'KAPAL LAUT';
@@ -974,7 +948,7 @@
                 `;
             }
             else if (currentCategory === 'pdam') {
-                titleEl.innerText = 'STRUK TAGIHAN AIR PDAM';
+                titleEl.textContent = 'STRUK TAGIHAN AIR PDAM';
                 const id = document.getElementById('pdam-id')?.value || '-';
                 const name = document.getElementById('pdam-name')?.value || '-';
                 const period = document.getElementById('pdam-period')?.value || '-';
@@ -991,7 +965,7 @@
                 `;
             } 
             else if (currentCategory === 'pln_pasca') {
-                titleEl.innerText = 'STRUK LISTRIK PASCA BAYAR';
+                titleEl.textContent = 'STRUK LISTRIK PASCA BAYAR';
                 const id = document.getElementById('pln-id')?.value || '-';
                 const name = document.getElementById('pln-name')?.value || '-';
                 const tariff = document.getElementById('pln-tariff')?.value || '-';
@@ -1006,7 +980,7 @@
                 `;
             }
             else if (currentCategory === 'pln_token') {
-                titleEl.innerText = 'STRUK TOKEN LISTRIK PLN';
+                titleEl.textContent = 'STRUK TOKEN LISTRIK PLN';
                 const id = document.getElementById('token-id')?.value || '-';
                 const name = document.getElementById('token-name')?.value || '-';
                 const tariff = document.getElementById('token-tariff')?.value || '-';
@@ -1026,7 +1000,7 @@
                 `;
             }
             else if (currentCategory === 'pulsa') {
-                titleEl.innerText = 'STRUK PULSA / PAKET DATA';
+                titleEl.textContent = 'STRUK PULSA / PAKET DATA';
                 const phone = document.getElementById('pulsa-phone')?.value || '-';
                 const provider = document.getElementById('pulsa-provider')?.value || '-';
                 const desc = document.getElementById('pulsa-desc')?.value || '-';
@@ -1039,7 +1013,7 @@
                 `;
             }
             else if (currentCategory === 'indihome') {
-                titleEl.innerText = 'STRUK PEMBAYARAN TELKOM';
+                titleEl.textContent = 'STRUK PEMBAYARAN TELKOM';
                 const id = document.getElementById('indi-id')?.value || '-';
                 const name = document.getElementById('indi-name')?.value || '-';
                 const period = document.getElementById('indi-period')?.value || '-';
@@ -1052,7 +1026,7 @@
                 `;
             }
             else if (currentCategory === 'general') {
-                titleEl.innerText = 'NOTA PENJUALAN TOKO';
+                titleEl.textContent = 'NOTA PENJUALAN TOKO';
                 const cust = document.getElementById('gen-customer')?.value || 'Umum';
                 
                 let itemLines = '';
@@ -1147,19 +1121,6 @@
                         clonedReceipt.style.border = 'none';
                         clonedReceipt.style.borderRadius = '0';
                     }
-
-                    // Kompensasi baseline font Courier pada html2canvas agar presisi di tengah
-                    const titleEl = clonedDoc.getElementById('rec-title');
-                    if (titleEl) {
-                        titleEl.style.paddingTop = '6px';
-                        titleEl.style.paddingBottom = '8px';
-                    }
-
-                    const badgeEl = clonedDoc.getElementById('rec-status-badge');
-                    if (badgeEl) {
-                        badgeEl.style.paddingTop = '6px';
-                        badgeEl.style.paddingBottom = '8px';
-                    }
                 }
             }).then(canvas => {
                 const link = document.createElement('a');
@@ -1177,7 +1138,8 @@
         function copyReceiptText() {
             const trxNo = document.getElementById('rec-trxno').innerText;
             const datetime = document.getElementById('rec-datetime').innerText;
-            const title = document.getElementById('rec-title').innerText;
+            const title = document.getElementById('rec-title').textContent;
+            const statusText = document.getElementById('rec-status-badge').textContent;
             
             let text = `==============================\n`;
             text += `     CV. NAJMA KOMPUTER\n`;
@@ -1209,7 +1171,7 @@
                 }
             });
             text += `==============================\n`;
-            text += `Status : ${document.getElementById('rec-status-badge').innerText}\n`;
+            text += `Status : ${statusText}\n`;
             text += `Terima kasih atas kunjungan Anda!\n`;
 
             navigator.clipboard.writeText(text).then(() => {
@@ -1219,7 +1181,7 @@
 
         function saveTransactionToHistory() {
             const trxNo = document.getElementById('rec-trxno')?.innerText || '';
-            const title = document.getElementById('rec-title')?.innerText || '';
+            const title = document.getElementById('rec-title')?.textContent || '';
             const date = document.getElementById('rec-datetime')?.innerText || '';
             const status = document.getElementById('input-status')?.value || 'LUNAS';
             const adminFee = document.getElementById('input-admin')?.value || '5000';
