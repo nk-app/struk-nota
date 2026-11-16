@@ -30,7 +30,7 @@
                         }
                     },
                     fontFamily: {
-                        receipt: ['Courier New', 'Courier', 'monospace']
+                        receipt: ['"Courier New"', 'Courier', 'monospace']
                     }
                 }
             }
@@ -46,23 +46,55 @@
     <script src="./auth.js"></script>
 
     <style>
+        /* =========================================================
+           PERBAIKAN 1: HASIL CETAK (PRINT) TAJAM & TIDAK BURAM
+           ========================================================= */
         @media print {
+            @page {
+                margin: 0;
+            }
+            body {
+                margin: 0 !important;
+                padding: 0 !important;
+                background: #ffffff !important;
+            }
             body * {
                 visibility: hidden;
             }
             #printable-receipt, #printable-receipt * {
                 visibility: visible;
+                color: #000000 !important;
+                border-color: #000000 !important;
+                -webkit-font-smoothing: none !important;
+                -moz-osx-font-smoothing: grayscale !important;
+                text-rendering: geometricPrecision !important;
             }
             #printable-receipt {
                 position: absolute;
                 left: 0;
                 top: 0;
                 width: 100% !important;
+                max-width: 100% !important;
                 margin: 0 !important;
-                padding: 10px !important;
+                padding: 8px 10px !important;
                 box-shadow: none !important;
                 border: none !important;
-                background: white !important;
+                background: #ffffff !important;
+                font-weight: 600 !important;
+            }
+            #printable-receipt .font-bold {
+                font-weight: 800 !important;
+            }
+            #printable-receipt .text-slate-700,
+            #printable-receipt .text-slate-600,
+            #printable-receipt .text-slate-500 {
+                color: #000000 !important;
+            }
+            #rec-status-badge {
+                background-color: #000000 !important;
+                color: #ffffff !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
             }
             .no-print {
                 display: none !important;
@@ -74,16 +106,54 @@
             box-shadow: 0 4px 15px -1px rgba(0, 0, 0, 0.1), 0 2px 6px -1px rgba(0, 0, 0, 0.06);
             color: #000000;
             box-sizing: border-box !important;
+            -webkit-font-smoothing: antialiased;
+            text-rendering: geometricPrecision;
         }
 
-        /* html2canvas strict layout fix */
-        .receipt-shape-badge {
-            display: inline-flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            line-height: 1.2 !important;
-            vertical-align: middle !important;
+        /* =========================================================
+           PERBAIKAN 2 & 3: PRESISI TENGAH VERTIKAL UNTUK HTML2CANVAS
+           ========================================================= */
+        .receipt-title-box {
+            display: table !important;
+            width: 100% !important;
+            border-top: 1px solid #0f172a;
+            border-bottom: 1px solid #0f172a;
+            margin: 12px 0;
             box-sizing: border-box !important;
+        }
+
+        .receipt-title-text {
+            display: table-cell !important;
+            vertical-align: middle !important;
+            text-align: center !important;
+            padding: 6px 4px !important;
+            line-height: 1.15 !important;
+            font-weight: 700;
+            font-size: 12px;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            color: #000000;
+        }
+
+        .receipt-shape-badge {
+            display: inline-table !important;
+            min-width: 126px;
+            height: 30px;
+            border-radius: 4px;
+            box-sizing: border-box !important;
+            text-align: center !important;
+        }
+
+        .receipt-shape-badge-text {
+            display: table-cell !important;
+            vertical-align: middle !important;
+            text-align: center !important;
+            padding: 0 16px !important;
+            line-height: 1 !important;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
         }
 
         /* Ensure uniform typography during html2canvas rendering */
@@ -168,7 +238,7 @@
                     </div>
                 </div>
 
-                <!-- Dynamic Dynamic Form Fields -->
+                <!-- Dynamic Form Fields -->
                 <div id="dynamic-form" class="space-y-3 pt-1">
                     <!-- Injected per Category -->
                 </div>
@@ -210,17 +280,17 @@
                 <div id="receipt-wrapper" class="w-[340px] transition-all duration-300">
                     
                     <!-- Thermal Receipt Paper -->
-                    <div id="printable-receipt" class="receipt-paper p-5 font-receipt text-xs leading-normal border border-slate-200 rounded-t-lg relative">
+                    <div id="printable-receipt" class="receipt-paper p-5 font-receipt text-xs leading-normal border border-slate-200 rounded-t-lg relative text-black">
                         
                         <!-- Header Struk -->
-                        <div class="text-center space-y-1 mb-3 pb-3 border-b border-dashed border-slate-400 flex flex-col items-center">
-                            <h2 class="font-bold text-base tracking-wider uppercase" id="rec-store-name">CV. NAJMA KOMPUTER</h2>
-                            <p class="text-[11px] leading-tight text-slate-700" id="rec-store-addr">Desa Numana, Kec. Wangi-Wangi Selatan<br>Kab. Wakatobi, Sulawesi Tenggara</p>
-                            <p class="text-[11px] text-slate-700">HP/WA: <span id="rec-store-phone">085298875399</span></p>
+                        <div class="text-center space-y-1 mb-3 pb-3 border-b border-dashed border-slate-500 flex flex-col items-center">
+                            <h2 class="font-bold text-base tracking-wider uppercase text-black" id="rec-store-name">CV. NAJMA KOMPUTER</h2>
+                            <p class="text-[11px] leading-tight text-black" id="rec-store-addr">Desa Numana, Kec. Wangi-Wangi Selatan<br>Kab. Wakatobi, Sulawesi Tenggara</p>
+                            <p class="text-[11px] text-black">HP/WA: <span id="rec-store-phone">085298875399</span></p>
                         </div>
 
                         <!-- Trx Meta Info -->
-                        <div class="space-y-1 text-[11px] mb-3 pb-2 border-b border-dashed border-slate-300">
+                        <div class="space-y-1 text-[11px] mb-3 pb-2 border-b border-dashed border-slate-400 text-black">
                             <div class="flex justify-between">
                                 <span>No. Struk:</span>
                                 <span class="font-bold font-mono" id="rec-trxno">NK-884910</span>
@@ -235,31 +305,31 @@
                             </div>
                         </div>
 
-                        <!-- Title Header Category -->
-                        <div class="my-3 text-center">
-                            <h3 id="rec-title" class="font-bold text-xs uppercase tracking-wider border-y border-slate-900 py-1 flex items-center justify-center leading-none">STRUK TAGIHAN AIR PDAM</h3>
+                        <!-- Title Header Category (Rata Tengah Vertikal Presisi) -->
+                        <div class="receipt-title-box">
+                            <h3 id="rec-title" class="receipt-title-text">STRUK TAGIHAN AIR PDAM</h3>
                         </div>
 
                         <!-- Dynamic Specific Content Details -->
-                        <div id="rec-details" class="space-y-1 text-xs my-3">
+                        <div id="rec-details" class="space-y-1 text-xs my-3 text-black">
                             <!-- Injected by JS -->
                         </div>
 
                         <!-- Financial Line Items & Total -->
-                        <div id="rec-financials" class="space-y-1 border-t border-dashed border-slate-400 pt-2 text-xs">
+                        <div id="rec-financials" class="space-y-1 border-t border-dashed border-slate-500 pt-2 text-xs text-black">
                             <!-- Injected by JS -->
                         </div>
 
-                        <!-- Status Badge -->
-                        <div class="my-4 flex justify-center">
-                            <div id="rec-status-badge" class="receipt-shape-badge min-w-[120px] px-4 py-1.5 rounded text-xs font-bold border border-slate-900 bg-slate-900 text-white text-center uppercase">
-                                LUNAS
+                        <!-- Status Badge (Teks LUNAS Presisi di Tengah Border) -->
+                        <div class="my-4 text-center">
+                            <div id="rec-status-badge" class="receipt-shape-badge border border-slate-900 bg-slate-900 text-white">
+                                <span id="rec-status-text" class="receipt-shape-badge-text">LUNAS</span>
                             </div>
                         </div>
 
                         <!-- Footer Struk -->
-                        <div class="text-center space-y-2 pt-3 border-t border-dashed border-slate-400">
-                            <p class="text-[10px] text-slate-600 leading-tight">Terima Kasih atas Kepercayaan Anda.<br>Simpan Struk Ini Sebagai Bukti Pembayaran Sah.</p>
+                        <div class="text-center space-y-2 pt-3 border-t border-dashed border-slate-500">
+                            <p class="text-[10px] text-black leading-tight">Terima Kasih atas Kepercayaan Anda.<br>Simpan Struk Ini Sebagai Bukti Pembayaran Sah.</p>
                             <div class="flex justify-center pt-1">
                                 <svg id="barcode-svg" class="max-h-10"></svg>
                             </div>
@@ -386,7 +456,9 @@
             initCategoryButtons();
             setDefaultDateTime();
             generateTrxNo();
-            checkAuthSession();
+            if (typeof checkAuthSession === 'function') {
+                checkAuthSession();
+            }
             registerServiceWorker();
         });
 
@@ -871,14 +943,15 @@
             document.getElementById('rec-kasir').innerText = activeKasir;
 
             const statusBadge = document.getElementById('rec-status-badge');
-            statusBadge.innerText = statusVal;
+            const statusText = document.getElementById('rec-status-text');
+            statusText.innerText = statusVal;
 
             if (statusVal === 'LUNAS') {
-                statusBadge.className = 'receipt-shape-badge min-w-[120px] px-4 py-1.5 rounded text-xs font-bold border border-slate-900 bg-slate-900 text-white text-center uppercase';
+                statusBadge.className = 'receipt-shape-badge border border-slate-900 bg-slate-900 text-white';
             } else if (statusVal === 'PENDING') {
-                statusBadge.className = 'receipt-shape-badge min-w-[120px] px-4 py-1.5 rounded text-xs font-bold border border-amber-600 text-amber-700 bg-amber-50 text-center uppercase';
+                statusBadge.className = 'receipt-shape-badge border border-amber-600 text-amber-700 bg-amber-50';
             } else {
-                statusBadge.className = 'receipt-shape-badge min-w-[120px] px-4 py-1.5 rounded text-xs font-bold border border-red-600 text-red-700 bg-red-50 text-center uppercase';
+                statusBadge.className = 'receipt-shape-badge border border-red-600 text-red-700 bg-red-50';
             }
 
             const titleEl = document.getElementById('rec-title');
@@ -905,7 +978,7 @@
                     <div class="flex justify-between items-start gap-2"><span>Kode PNR</span><span class="font-bold text-right font-mono">${pnr}</span></div>
                     <div class="flex justify-between items-start gap-2"><span>Rute Flight</span><span class="text-right break-words max-w-[170px]">${route}</span></div>
                     <div class="flex justify-between items-start gap-2"><span>Jadwal Terbang</span><span class="text-right text-[10px]">${flightdate}</span></div>
-                    <div class="flex justify-between items-start gap-2 border-t border-slate-200 pt-1 mt-1"><span>Penumpang</span><span class="font-bold text-right break-words max-w-[170px]">${passenger}</span></div>
+                    <div class="flex justify-between items-start gap-2 border-t border-slate-300 pt-1 mt-1"><span>Penumpang</span><span class="font-bold text-right break-words max-w-[170px]">${passenger}</span></div>
                 `;
             }
             else if (currentCategory === 'pelni') {
@@ -927,7 +1000,7 @@
                     <div class="flex justify-between items-start gap-2"><span>Rute Pelabuhan</span><span class="text-right break-words max-w-[170px]">${route}</span></div>
                     <div class="flex justify-between items-start gap-2"><span>Kelas/Deck</span><span class="text-right">${pClass}</span></div>
                     <div class="flex justify-between items-start gap-2"><span>Keberangkatan</span><span class="text-right text-[10px]">${departdate}</span></div>
-                    <div class="flex justify-between items-start gap-2 border-t border-slate-200 pt-1 mt-1"><span>Penumpang</span><span class="font-bold text-right break-words max-w-[170px]">${passenger}</span></div>
+                    <div class="flex justify-between items-start gap-2 border-t border-slate-300 pt-1 mt-1"><span>Penumpang</span><span class="font-bold text-right break-words max-w-[170px]">${passenger}</span></div>
                 `;
             }
             else if (currentCategory === 'pdam') {
@@ -976,9 +1049,9 @@
                     <div class="flex justify-between items-start gap-2"><span>Nama Pel</span><span class="font-bold text-right break-words max-w-[170px]">${name}</span></div>
                     <div class="flex justify-between items-start gap-2"><span>Tarif/Daya</span><span class="text-right">${tariff}</span></div>
                     <div class="flex justify-between items-start gap-2"><span>Jml kWh</span><span class="text-right">${kwh}</span></div>
-                    <div class="my-2 p-2 bg-slate-100 rounded text-center border border-dashed border-slate-300">
-                        <span class="block text-[9px] uppercase tracking-wider text-slate-500">Strum / Kode Token</span>
-                        <span class="font-bold text-sm tracking-wider block font-mono my-0.5">${code}</span>
+                    <div class="my-2 p-2 bg-slate-100 rounded text-center border border-dashed border-slate-400">
+                        <span class="block text-[9px] uppercase tracking-wider text-black">Strum / Kode Token</span>
+                        <span class="font-bold text-sm tracking-wider block font-mono my-0.5 text-black">${code}</span>
                     </div>
                 `;
             }
@@ -1021,7 +1094,7 @@
                     itemLines += `
                         <div class="space-y-0.5">
                             <div class="font-bold">${item.name}</div>
-                            <div class="flex justify-between text-[10px] text-slate-600">
+                            <div class="flex justify-between text-[10px] text-black">
                                 <span>${item.qty} x ${formatRp(item.price)}</span>
                                 <span>${formatRp(lineTotal)}</span>
                             </div>
@@ -1032,7 +1105,7 @@
                 mainAmount = itemsSubtotal;
 
                 detailsHTML = `
-                    <div class="flex justify-between items-start gap-2 mb-2 pb-1 border-b border-slate-200">
+                    <div class="flex justify-between items-start gap-2 mb-2 pb-1 border-b border-slate-300">
                         <span>Pelanggan</span>
                         <span class="font-bold text-right break-words max-w-[170px]">${cust}</span>
                     </div>
@@ -1053,7 +1126,7 @@
                     <span>Biaya Admin</span>
                     <span class="text-right font-medium">${formatRp(adminFee)}</span>
                 </div>
-                <div class="flex justify-between text-xs font-bold pt-1 border-t border-slate-300">
+                <div class="flex justify-between text-xs font-bold pt-1 border-t border-slate-400">
                     <span>TOTAL BAYAR</span>
                     <span class="text-right text-sm">${formatRp(grandTotal)}</span>
                 </div>
@@ -1092,7 +1165,7 @@
             showToast('Menyiapkan gambar struk...');
             
             html2canvas(target, {
-                scale: 3,
+                scale: 4, // Resolusi tinggi agar teks tajam dan tidak pecah/buram
                 useCORS: true,
                 allowTaint: true,
                 backgroundColor: '#ffffff',
@@ -1103,13 +1176,28 @@
                         clonedReceipt.style.boxShadow = 'none';
                         clonedReceipt.style.border = 'none';
                         clonedReceipt.style.borderRadius = '0';
+                        clonedReceipt.style.color = '#000000';
+                    }
+
+                    // Penyesuaian presisi baseline font Courier New pada html2canvas
+                    const clonedTitle = clonedDoc.getElementById('rec-title');
+                    if (clonedTitle) {
+                        clonedTitle.style.paddingTop = '5px';
+                        clonedTitle.style.paddingBottom = '7px';
+                        clonedTitle.style.lineHeight = '1';
+                    }
+
+                    const clonedStatusText = clonedDoc.getElementById('rec-status-text');
+                    if (clonedStatusText) {
+                        clonedStatusText.style.paddingBottom = '2px';
+                        clonedStatusText.style.lineHeight = '1';
                     }
                 }
             }).then(canvas => {
                 const link = document.createElement('a');
                 const trxNo = document.getElementById('input-trxno')?.value || 'Struk';
                 link.download = `Struk_NajmaKomputer_${trxNo}.png`;
-                link.href = canvas.toDataURL('image/png');
+                link.href = canvas.toDataURL('image/png', 1.0);
                 link.click();
                 showToast('Gambar berhasil diunduh!');
             }).catch(err => {
@@ -1153,7 +1241,7 @@
                 }
             });
             text += `==============================\n`;
-            text += `Status : ${document.getElementById('rec-status-badge').innerText}\n`;
+            text += `Status : ${document.getElementById('rec-status-text').innerText}\n`;
             text += `Terima kasih atas kunjungan Anda!\n`;
 
             navigator.clipboard.writeText(text).then(() => {
